@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/src/output.css" rel="stylesheet">
+    <script src="./src/app.js" type="module" defer></script>
+    <title>Vite App</title>
+</head>
+
+<body class="min-h-screen h-screen">
+    <div x-data="app" class="p-4 bg-slate-200 h-full space-y-12">
+        <div>
+            <button class="cursor-pointer" @click="test()">Test</button>
+        </div>
+        <div class="w-full lg:w-[90%] relative">
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/rocket.svg" class="w-8 h-8 inline-block" /></span>Configure Test</h1>
+            <small>
+                When laying out the test steps, do so with a single user journey. When later running the load test you will have the option to read values from a spreadsheet for threading.
+            </small>
+            <div>
+                <h2 class="font-semibold mt-4">Choose an action</h2>
+                <div data-drop-target="true" class="flex gap-x-4 items-start">
+                    <button id="1" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Visit Link in Address Bar</button>
+                    <button id="2" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Action Element on Page</button>
+                    <button id="3" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Take Screenshot</button>
+                    <button id="4" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Sleep</button>
+                </div>
+                <div class="p-4 bg-slate-700 rounded-md flex flex-wrap gap-y-6 items-start mt-4">
+                    <template x-for="step in builder.steps">
+                        <div class="flex items-center">
+                            <div class="relative w-[215px] h-[58px] flex items-center justify-center bg-white border p-4 rounded-md text-center hover:bg-slate-400 text-xs cursor-pointer" @click="sliders.editItem.item=step;sliders.editItem.show=true"><img src="./images/icons/link.svg" class="w-4 h-4 absolute left-1 top-1" /><span class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="step.title"></span></div>
+                            <img src="./images/icons/arrow-right.svg" class="w-8 h-8" />
+                        </div>
+                    </template>
+                    <div class="flex items-center">
+                        <div class="w-[215px] border border-dashed h-[58px] grid place-content-center rounded-md hover:bg-slate-400 bg-slate-300" data-drop-target="true" @dragover.prevent="handleDragOver(event)" @drop="handleDragOver(event)" @dragenter="$el.classList.add('shadow')" @dragleave="$el.classList.remove('shadow')"><img src="./images/icons/plus-circle.svg" class="w-8 h-8" /></div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-8">
+                <div class="flex items-center gap-x-2">
+                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow border" @click="onTestRunClicked"><span>Test Run</span><img src="./images/icons/rocket.svg" class="w-8 h-8" /></button>
+                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow border"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+                </div>
+            </div>
+        </div>
+
+        <div x-cloak>
+            <div x-show="sliders.editItem.show" @click="sliders.editItem.show=false" class="fixed inset-0 backdrop-blur-sm bg-[#00000075]"></div>
+            <div class="fixed transition duration-500 right-0 top-0 transform w-full max-w-2xl h-screen bg-slate-800 overflow-hidden" :class="{'translate-x-full': !sliders.editItem.show}">
+                <div class="h-[75px] flex items-center justify-between px-2 border-b border-slate-400">
+                    <h1 class="text-xl font-semibold text-white">Configure Step</h1>
+                    <button class="py-0.5 px-2 border min-w-[105px] hover:bg-slate-200 rounded-md bg-white font-semibold cursor-pointer" @click="sliders.editItem.show=false">Close</button>
+                </div>
+                <template x-if="sliders.editItem.show">
+                    <div class="p-4 text-white">
+                        <h1 class="text-lg font-semibold">Step <span x-text="sliders.editItem.item.step"></span></h1>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    <script>
+        const app = (e) => ({
+            builder: {
+                draggingElem: null,
+                steps: [
+                    {
+                        step: 1,
+                        type: 'Visit',
+                        human_type: 'Visit Link in Address Bar',
+                        title: 'https://www.google.com',
+                        endpoint: 'https://www.google.com',
+                        selector: null,
+                        confugured: true
+                    }
+                ]
+            },
+            sliders: {
+                editItem: {
+                    show: false,
+                    item: null
+                }
+            },
+            async onTestRunClicked() {
+                const response = await fetch('http://localhost:5000/configure/test', {
+                    method: 'POST',
+                    body: JSON.stringify({steps: this.builder.steps}),
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const json = await response.json()
+                if (!response.ok) {
+                    alert('Failed')
+                    return
+                }
+                console.log(json)
+            },
+            handleDragOver(e) {
+                if (e.type != "drop") return;
+			    const draggedEl = this.builder.draggingElem;
+                this.pushNewBuilderStep(draggedEl)
+                this.sliders.editItem.item = this.builder.steps[this.builder.steps.length - 1]
+                this.sliders.editItem.show = true
+            },
+            pushNewBuilderStep(draggedEl) {
+                this.builder.steps.push({
+                    step: this.builder.steps.length + 1,
+                    type: 'Visit',
+                    human_type: 'Visit Link in Address Bar',
+                    title: 'https://www.notgoogle.com',
+                    endpoint: 'https://www.notgoogle.comn',
+                    selector: null,
+                    configured: false
+                })
+            },
+            ...e
+        })
+    </script>
+</body>
+
+</html>

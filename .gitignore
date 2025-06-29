@@ -1,0 +1,4 @@
+venv
+instance
+flaskr/__pycache__
+client/node_modules
