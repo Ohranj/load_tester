@@ -13,37 +13,50 @@
 <body class="min-h-screen h-screen">
     <div x-data="app" class="p-4 bg-slate-200 h-full space-y-12">
         <div>
-            <button class="cursor-pointer" @click="test()">Test</button>
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/beaker.svg" class="w-8 h-8 inline-block" /></span>Stored Tests</h1>
         </div>
-        <div class="w-full lg:w-[90%] relative">
+        <div class="w-full xl:w-[75%] relative">
             <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/rocket.svg" class="w-8 h-8 inline-block" /></span>Configure Test</h1>
-            <small>
-                When laying out the test steps, do so with a single user journey. When later running the load test you will have the option to read values from a spreadsheet for threading.
-            </small>
+            <small>When laying out the test steps, do so with a single user journey. When later running the load test you will have the option to read values from a spreadsheet for threading.</small>
             <div>
                 <h2 class="font-semibold mt-4">Choose an action</h2>
-                <div data-drop-target="true" class="flex gap-x-4 items-start">
-                    <button id="1" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Visit Link in Address Bar</button>
-                    <button id="2" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Action Element on Page</button>
-                    <button id="3" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Take Screenshot</button>
-                    <button id="4" draggable="true" class="border p-4 cursor-pointer rounded-md w-[215px] hover:bg-blue-500 hover:text-white" @dragstart="builder.draggingElem=$el">Sleep</button>
+                <div data-drop-target="true" class="flex gap-4 items-start flex-wrap">
+                    <template x-for="action in builder.actions">
+                        <button :data-action="JSON.stringify(action)" :id="action.id" draggable="true" class="border p-4 cursor-pointer rounded-md min-w-[215px] hover:bg-blue-500 hover:text-white shadow shadow-black" @dragstart="builder.draggingElem=$el" x-text="action.human_type"></button>
+                    </template>
                 </div>
                 <div class="p-4 bg-slate-700 rounded-md flex flex-wrap gap-y-6 items-start mt-4">
-                    <template x-for="step in builder.steps">
-                        <div class="flex items-center">
-                            <div class="relative w-[215px] h-[58px] flex items-center justify-center bg-white border p-4 rounded-md text-center hover:bg-slate-400 text-xs cursor-pointer" @click="sliders.editItem.item=step;sliders.editItem.show=true"><img src="./images/icons/link.svg" class="w-4 h-4 absolute left-1 top-1" /><span class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="step.title"></span></div>
-                            <img src="./images/icons/arrow-right.svg" class="w-8 h-8" />
+                    <template x-for="(step, index) in builder.steps">
+                        <div class="flex items-center relative">
+                            <div class="relative w-[215px] h-[58px] flex items-center justify-center bg-white border p-4 rounded-md text-center hover:bg-slate-400 text-xs cursor-pointer" @click="sliders.editItem.item=step;sliders.editItem.index=index;sliders.editItem.show=true">
+                                <template x-if="step.type == 'visit'">
+                                    <img src="./images/icons/link.svg" class="w-5 h-5 absolute left-1 top-1" />
+                                </template>
+                                <template x-if="step.type == 'sleep'">
+                                    <img src="./images/icons/pause.svg" class="w-5 h-5 absolute left-1 top-1" />
+                                </template>
+                                <template x-if="step.type == 'screenshot'">
+                                    <img src="./images/icons/camera.svg" class="w-5 h-5 absolute left-1 top-1" />
+                                </template>
+                                <template x-if="step.type == 'click'">
+                                    <img src="./images/icons/click.svg" class="w-5 h-5 absolute left-1 top-1" />
+                                </template>
+                                <template x-if="step.type == 'input'">
+                                    <img src="./images/icons/pencil.svg" class="w-5 h-5 absolute left-1 top-1" />
+                                </template>
+                                <span class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="step.displayTitle"></span></div>
+                            <img src="./images/icons/arrow-right.svg" class="w-8 h-8" droppable="true" @dragover.prevent="styleDropBetween(event)" @drop.prevent="handleDrop(event, index)" />
                         </div>
                     </template>
                     <div class="flex items-center">
-                        <div class="w-[215px] border border-dashed h-[58px] grid place-content-center rounded-md hover:bg-slate-400 bg-slate-300" data-drop-target="true" @dragover.prevent="handleDragOver(event)" @drop="handleDragOver(event)" @dragenter="$el.classList.add('shadow')" @dragleave="$el.classList.remove('shadow')"><img src="./images/icons/plus-circle.svg" class="w-8 h-8" /></div>
+                        <div class="w-[215px] border border-dashed h-[58px] grid place-content-center rounded-md hover:bg-slate-400 bg-slate-300" data-drop-target="true" @dragover.prevent="handleDrop(event)" @drop.prevent="handleDrop(event)" @dragenter="$el.classList.add('shadow')" @dragleave="$el.classList.remove('shadow')"><img src="./images/icons/plus-circle.svg" class="w-8 h-8" /></div>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end mt-8">
+            <div class="flex justify-end mt-4">
                 <div class="flex items-center gap-x-2">
-                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow border" @click="onTestRunClicked"><span>Test Run</span><img src="./images/icons/rocket.svg" class="w-8 h-8" /></button>
-                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow border"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="onTestRunClicked"><span>Test Run</span><img src="./images/icons/rocket.svg" class="w-8 h-8" /></button>
+                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
                 </div>
             </div>
         </div>
@@ -53,39 +66,173 @@
             <div class="fixed transition duration-500 right-0 top-0 transform w-full max-w-2xl h-screen bg-slate-800 overflow-hidden" :class="{'translate-x-full': !sliders.editItem.show}">
                 <div class="h-[75px] flex items-center justify-between px-2 border-b border-slate-400">
                     <h1 class="text-xl font-semibold text-white">Configure Step</h1>
-                    <button class="py-0.5 px-2 border min-w-[105px] hover:bg-slate-200 rounded-md bg-white font-semibold cursor-pointer" @click="sliders.editItem.show=false">Close</button>
+                    <button class="py-0.5 px-2 border min-w-[105px] hover:bg-slate-200 rounded-md bg-white font-semibold cursor-pointer" @click="sliders.editItem.show=false">Confirm</button>
                 </div>
                 <template x-if="sliders.editItem.show">
                     <div class="p-4 text-white">
-                        <h1 class="text-lg font-semibold">Step <span x-text="sliders.editItem.item.step"></span></h1>
+                        <h1 class="text-lg font-semibold">Step <span x-text="sliders.editItem.item.stepNumber"></span> - <span x-text="sliders.editItem.item.human_type"></span></h1>
+                        <div class="mt-6">
+                            <template x-if="sliders.editItem.item.type == 'visit'">
+                                <div class="flex flex-col text-sm">
+                                    <label>Full URL to visit</label>
+                                    <input spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" @input="sliders.editItem.item.displayTitle = $el.value" />
+                                </div>
+                            </template>
+                            <template x-if="sliders.editItem.item.type == 'sleep'">
+                                <div class="space-y-6">
+                                    <small class="block">You do not need to use a sleep action to wait for content to be retrieved. This has been set by default. Additionally, a wait of up to 3 seconds has been set to allow for elements to be painted. Sleep actions should be intended as a last result or as a required interval</small>
+                                    <div class="flex flex-col text-sm">
+                                        <label>Duration (secs)</label>
+                                        <input spellcheck="false" class="border cursor-pointer text-center rounded-md self-start px-1 py-0.5 w-[75px]" @click="$el.select()" x-model.number="sliders.editItem.item.value" @input="sliders.editItem.item.displayTitle = `Sleep: ${$el.value}s`" />
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="sliders.editItem.item.type == 'screenshot'">
+                                <div class="space-y-6">
+                                    <small class="block">For test runs screenshots are not persisted. They will be overwrote on completion of your next test run.</small>
+                                    <div class="flex flex-col text-sm">
+                                        <label>Screenshot name</label>
+                                        <input placeholder="..." spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-1/3" @click="$el.select()" x-model.number="sliders.editItem.item.screenshot_name" @input="sliders.editItem.item.displayTitle = `Screenshot: ${$el.value}`" />
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="sliders.editItem.item.type == 'click'">
+                                <div class="space-y-6">
+                                    <div class="flex flex-col text-sm">
+                                        <label>Lookup by attribute (First match on page used)</label>
+                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700" x-model.number="sliders.editItem.item.selector_type">
+                                            <template x-for="x in builder.elementLookups">
+                                                <option :selected="x.id == sliders.editItem.item.selector_type" :value.number="x.id" x-text="x.human_type"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col text-sm">
+                                        <label>Lookup element to find</label>
+                                        <input placeholder="input[type='submit']" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" />
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="sliders.editItem.item.type == 'input'">
+                                <div class="space-y-6">
+                                    <div class="flex flex-col text-sm">
+                                        <label>Lookup by attribute (First match on page used)</label>
+                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700"
+                                            x-model.number="sliders.editItem.item.selector_type">
+                                            <template x-for="x in builder.elementLookups">
+                                                <option :selected="x.id == sliders.editItem.item.selector_type" :value.number="x.id" x-text="x.human_type"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col text-sm">
+                                        <label>Lookup element to find</label>
+                                        <input placeholder="input[type='email']" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" />
+                                    </div>
+                                    <div class="flex flex-col text-sm">
+                                        <label>Form field type</label>
+                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700" x-model.number="sliders.editItem.item.field_type_id" @change="sliders.editItem.item.field_value = null">
+                                            <template x-for="x in builder.fieldTypes">
+                                                <option :selected="x.id == sliders.editItem.item.field_type_id" :value.number="x.id" x-text="x.human_type"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <template x-if="sliders.editItem.item.field_type_id == 0">
+                                        <div class="flex flex-col text-sm">
+                                            <label>Text value for input field</label>
+                                            <input placeholder="..." spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.field_value" @click="$el.select()" />
+                                        </div>
+                                    </template>
+                                    <template x-if="sliders.editItem.item.field_type_id == 1">
+                                        <div class="flex flex-col text-sm">
+                                            <label>Numeric value for input field</label>
+                                            <input placeholder="..." type="number" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-[75px]" x-model.number="sliders.editItem.item.field_value" @click="$el.select()" />
+                                        </div>
+                                    </template>
+                                    <template x-if="sliders.editItem.item.field_type_id == 2">
+                                        <div class="flex flex-col text-sm">
+                                            <label>Matching text value of intended option</label>
+                                            <input placeholder="..." class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.field_value" @click="$el.select()" />
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <button class="mt-12 py-0.5 px-2 border min-w-[105px] rounded-md font-semibold cursor-pointer" :class="builder.steps.length <= 1 ? 'bg-slate-400 hover:bg-slate-400' : 'bg-red-500 hover:bg-red-600 border-red-300'" :disabled="builder.steps.length <= 1" @click="builder.steps.splice(sliders.editItem.item.stepNumber - 1, 1);resetStepNumbers();sliders.editItem.show=false;">Trash Step</button>
+                        </div>
                     </div>
                 </template>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <template x-for="x in builder.screenshots">
+                <div class="rounded-md shadow shadow-black p-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
+                    <img :src="'data:image/png;base64,' + x.encoding" class="w-[300px] h-auto rounded-md" />
+                    <small class="font-semibold" x-text="x.name || 'Unnamed'"></small>
+                </div>
+            </template>
+        </div>
+        <div x-cloak x-show="toast.show" x-transition class="fixed right-2 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px]">
+            <div class="flex items-center justify-between p-2">
+                <h1 class="font-semibold" x-text="toast.title"></h1>
+                <span :class="toast.success ? 'bg-green-500' : 'bg-red-500'" class="w-4 h-4 rounded-full"></span>
+            </div>
+            <hr>
+            <div class="p-2">
+                <p x-cloak x-show="!toast.success" x-text="toast.content"></p>
+                <img x-cloak x-show="toast.success" src="/gifs/thumbs-up-well-done.gif" class="w-[90px] h-auto rounded mx-auto" />
             </div>
         </div>
     </div>
     <script>
         const app = (e) => ({
+            toast: {
+                show: false,
+                success: true,
+                title: '',
+                content: ''
+            },
             builder: {
+                actions: null,
+                elementLookups: null,
+                fieldTypes: null,
                 draggingElem: null,
+                screenshots: [],
                 steps: [
                     {
-                        step: 1,
-                        type: 'Visit',
-                        human_type: 'Visit Link in Address Bar',
-                        title: 'https://www.google.com',
-                        endpoint: 'https://www.google.com',
-                        selector: null,
-                        confugured: true
+                        stepNumber: 1,
+                        selector_type: null,
+                        displayTitle: 'https://www.example.com',
+                        value: 'https://www.example.com',
+                        field_value: null,
+                        field_type_id: null,
+                        type: 'visit',
+                        human_type: 'Visit URL in Address Bar',
+                        id: 0,
+                        screenshot_name: null
                     }
                 ]
             },
             sliders: {
                 editItem: {
                     show: false,
-                    item: null
+                    item: null,
                 }
             },
+            init() {
+                this.retrieveConfigVars()
+                this.$watch('toast.show', (state) => {
+                    if (!state) return
+                    setTimeout(() => this.toast.show = false, 6000)
+                })
+            },
+            async retrieveConfigVars() {
+                const response = await fetch('http://localhost:5000/configure/list')
+                const json = await response.json()
+                const {actionsList, elementLookups, fieldTypes} = json.data
+                this.builder.actions = actionsList;
+                this.builder.elementLookups = elementLookups
+                this.builder.fieldTypes = fieldTypes
+            },
             async onTestRunClicked() {
+                this.builder.screenshots = []
                 const response = await fetch('http://localhost:5000/configure/test', {
                     method: 'POST',
                     body: JSON.stringify({steps: this.builder.steps}),
@@ -96,28 +243,81 @@
                 })
                 const json = await response.json()
                 if (!response.ok) {
-                    alert('Failed')
+                    const errors = json.errors;
+                    this.toast.title = 'Test Run: Failed'
+                    this.toast.content = json.errors[0].message || 'Please check the steps involved and try again'
+                    this.toast.success = false;
+                    this.toast.show = true;
                     return
                 }
                 console.log(json)
+                this.builder.screenshots = json.data.screenshots
+                this.toast.title = 'Test Run: Success'
+                this.toast.content = 'Test completed successfully.'
+                this.toast.success = true;
+                this.toast.show = true;
             },
-            handleDragOver(e) {
+            handleDrop(e, stepIndex = -1) {
                 if (e.type != "drop") return;
+                let itemPosition = this.builder.steps.length
+                if (stepIndex == -1) {
+                    stepIndex = this.builder.steps.length
+                } else {
+                    itemPosition = stepIndex + 1
+                }
 			    const draggedEl = this.builder.draggingElem;
-                this.pushNewBuilderStep(draggedEl)
-                this.sliders.editItem.item = this.builder.steps[this.builder.steps.length - 1]
+                const step = this.createNewStepObject(draggedEl)
+                this.builder.steps.splice(stepIndex + 1, 0, step)
+                this.resetStepNumbers()
+                this.sliders.editItem.item = this.builder.steps[itemPosition]
                 this.sliders.editItem.show = true
+                this.builder.draggingElem = null;
             },
-            pushNewBuilderStep(draggedEl) {
-                this.builder.steps.push({
-                    step: this.builder.steps.length + 1,
-                    type: 'Visit',
-                    human_type: 'Visit Link in Address Bar',
-                    title: 'https://www.notgoogle.com',
-                    endpoint: 'https://www.notgoogle.comn',
-                    selector: null,
-                    configured: false
-                })
+            createNewStepObject(draggedEl) {
+                const action = JSON.parse(draggedEl.getAttribute('data-action'))
+                const step = {
+                    stepNumber: null,
+                    selector_type: null,
+                    displayTitle: null,
+                    value: null,
+                    field_value: null,
+                    field_type_id: null,
+                    screenshot_name: null,
+                    ...action,
+                }
+
+                switch(action.type) {
+                    case 'visit':
+                        step.displayTitle = 'https://www.example.com'
+                        step.value = 'https://www.example.com'
+                        break;
+                    case 'sleep':
+                        step.displayTitle = 'Sleep: 3s';
+                        step.value = 3;
+                        break;
+                    case 'screenshot':
+                        step.displayTitle = 'Screenshot: Unnamed'
+                        break;
+                    case 'click':
+                        step.displayTitle = 'Click Element';
+                        step.selector_type = 0
+                        break;
+                    case 'input':
+                        step.displayTitle = 'Field Input';
+                        step.field_type_id = 0
+                        step.selector_type = 0
+                }
+                return step;
+            },
+            resetStepNumbers() {
+                let i = 0;
+                do {
+                    this.builder.steps[i].stepNumber = i + 1;
+                    i += 1
+                } while(i < this.builder.steps.length)
+            },
+            styleDropBetween(e) {
+                console.log(e)
             },
             ...e
         })
