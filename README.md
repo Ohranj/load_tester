@@ -8,6 +8,10 @@ flask --app flaskr run --debug --port 5000
 ```
 
 ```
+flask --app flaskr init-db
+```
+
+```
 cd client
 npm run dev
 ```

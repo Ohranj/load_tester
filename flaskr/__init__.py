@@ -27,4 +27,10 @@ def create_app(test_config=None):
     from . import configure
     app.register_blueprint(configure.bp)
 
+    from . import tests
+    app.register_blueprint(tests.bp)
+
+    from . import db
+    db.init_app(app)
+
     return app

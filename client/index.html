@@ -10,10 +10,26 @@
     <title>Vite App</title>
 </head>
 
-<body class="min-h-screen h-screen">
-    <div x-data="app" class="p-4 bg-slate-200 h-full space-y-12">
+<body class="min-h-screen h-screen bg-slate-200">
+    <div x-data="app" class="px-4 py-12 h-full space-y-20">
         <div>
             <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/beaker.svg" class="w-8 h-8 inline-block" /></span>Stored Tests</h1>
+            <div class="rounded-md shadow shadow-black">
+                <div class="grid grid-cols-7 bg-slate-700 text-white gap-x-1 rounded-t-md p-1 font-semibold">
+                    <small class="col-span-2">Name</small>
+                    <small class="col-span-2">Start From</small>
+                    <small class="col-span-2">Created</small>
+                    <small></small>
+                </div>
+                <template x-for="x in tests">
+                    <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 odd:bg-slate-300 hover:bg-slate-300">
+                        <small class="col-span-2" x-text="x.name"></small>
+                        <small class="col-span-2" x-text="x.start"></small>
+                        <small class="col-span-2" x-text="x.created"></small>
+                        <small>action / delete / export</small>
+                    </div>
+                </template>
+            </div>
         </div>
         <div class="w-full xl:w-[75%] relative">
             <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/rocket.svg" class="w-8 h-8 inline-block" /></span>Configure Test</h1>
@@ -56,7 +72,7 @@
             <div class="flex justify-end mt-4">
                 <div class="flex items-center gap-x-2">
                     <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="onTestRunClicked"><span>Test Run</span><img src="./images/icons/rocket.svg" class="w-8 h-8" /></button>
-                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border" @click="modals.store.value=null;modals.store.show=true"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
                 </div>
             </div>
         </div>
@@ -169,7 +185,7 @@
                 </div>
             </template>
         </div>
-        <div x-cloak x-show="toast.show" x-transition class="fixed right-2 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px]">
+        <div x-cloak x-show="toast.show" x-transition class="fixed right-2 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px] z-10">
             <div class="flex items-center justify-between p-2">
                 <h1 class="font-semibold" x-text="toast.title"></h1>
                 <span :class="toast.success ? 'bg-green-500' : 'bg-red-500'" class="w-4 h-4 rounded-full"></span>
@@ -180,6 +196,20 @@
                 <img x-cloak x-show="toast.success" src="/gifs/thumbs-up-well-done.gif" class="w-[90px] h-auto rounded mx-auto" />
             </div>
         </div>
+        <div x-cloak x-show="modals.store.show" class="p-4 bg-[#00000090] z-1 absolute left-0 top-0 grid place-content-center w-full h-full">
+            <div x-show="modals.store.show" x-transition class="bg-white w-[500px] h-[200px] rounded-md flex flex-col">
+                <div class="p-2 flex items-center justify-between">
+                    <h1 class="font-semibold text-lg">Name of Test</h1>
+                    <button class="py-0.5 px-2 border shadow shadow-black min-w-[105px] hover:bg-red-600 rounded-md bg-red-500 text-white font-semibold cursor-pointer" @click="modals.store.show=false">Cancel</button>
+                </div>
+                <hr>
+                <div class="p-2 flex flex-col justify-evenly items-center grow">
+                    <input x-model="modals.store.value" class="rounded-md cursor-pointer px-1 py-0.5 border" @click="$el.select()"/>
+                    <button :disabled="!modals.store.value" class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border" @click="onConfirmStoreTest"><span>Confirm</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+                </div>
+            </div>
+
+        </div>
     </div>
     <script>
         const app = (e) => ({
@@ -189,6 +219,7 @@
                 title: '',
                 content: ''
             },
+            tests: [],
             builder: {
                 actions: null,
                 elementLookups: null,
@@ -216,12 +247,24 @@
                     item: null,
                 }
             },
+            modals: {
+                store: {
+                    show: false,
+                    value: null
+                }
+            },
             init() {
+                this.retrieveTests()
                 this.retrieveConfigVars()
                 this.$watch('toast.show', (state) => {
                     if (!state) return
                     setTimeout(() => this.toast.show = false, 6000)
                 })
+            },
+            async retrieveTests() {
+                const response = await fetch('http://localhost:5000/tests/')
+                const json = await response.json()
+                this.tests = json.data.tests;
             },
             async retrieveConfigVars() {
                 const response = await fetch('http://localhost:5000/configure/list')
@@ -318,6 +361,35 @@
             },
             styleDropBetween(e) {
                 console.log(e)
+            },
+            async onConfirmStoreTest() {
+                const response = await fetch('http://localhost:5000/tests/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: this.modals.store.value,
+                        test: this.builder.steps
+                    }),
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const json = await response.json()
+                console.log(json)
+                if (!response.ok) {
+                    const errors = json.errors;
+                    this.toast.title = 'Test Run: Failed'
+                    this.toast.content = json.errors[0].message || 'Please check the steps involved and try again'
+                    this.toast.success = false;
+                    this.toast.show = true;
+                    return
+                }
+                await this.retrieveTests()
+                this.modals.store.show = false;
+                this.toast.title = 'Test Run: Success'
+                this.toast.content = 'Test completed successfully.'
+                this.toast.success = true;
+                this.toast.show = true;
             },
             ...e
         })
