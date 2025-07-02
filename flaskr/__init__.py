@@ -30,6 +30,9 @@ def create_app(test_config=None):
     from . import tests
     app.register_blueprint(tests.bp)
 
+    from . import sheet
+    app.register_blueprint(sheet.bp)
+
     from . import db
     db.init_app(app)
 

@@ -4,3 +4,4 @@ flaskr/__pycache__
 client/node_modules
 flaskr/helpers/__pycache__
 screenshots/temp
+uploads/sheets

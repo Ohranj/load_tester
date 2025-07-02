@@ -8,15 +8,109 @@
     <title>Test</title>
 </head>
 <body x-data="test">
-    <div class="p-4">
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Animi hic quas, ipsam possimus exercitationem molestias. Fugiat aperiam iusto quo voluptatem saepe asperiores adipisci accusamus perferendis, maiores, veniam illum voluptatum expedita velit, vitae hic accusantium aut labore vel modi placeat est dicta odio magni. Quaerat velit at obcaecati nisi pariatur. Eveniet.</p>
+    <div class="p-4 space-y-16">
+        <div>
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>Previous Runs</h1>
+        </div>
+        <div>
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>New Run</h1>
+            <div class="mt-2">
+                <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0" @change="uploadSheet($el.files)" />
+                <button class="bg-orange-500 cursor-pointer hover:bg-orange-600 rounded-md min-w-[75px] px-2 py-0.5 font-semibold shadow shadow-black border text-white" @click="$refs.i_upload.click()">Upload .xlsx</button>
+                <div x-cloak x-show="sheet.show" x-collapse class="mt-2">
+                    <small class="font-semibold">Sample data</small>
+                    <div class="shadow shadow-black">
+                        <template x-for="row in sheet.head">
+                            <div class="grid grid-cols-7 even:bg-slate-200">
+                                <template x-for="x in row">
+                                    <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap"
+                                        x-text="x"></small>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <small>
+                        Total Rows:- <span x-text="sheet.rows"></span>
+                    </small>
+                </div>
+                <div class="mt-20">
+                    <div class="rounded-md shadow shadow-black">
+                        <div class="grid grid-cols-7 gap-x-1 p-1 items-center font-semibold bg-slate-700 text-white rounded-t-md">
+                            <small>Action</small>
+                            <small>Identifier</small>
+                            <small>Value</small>
+                            <small class="text-center">Swap out from .xlsx</small>
+                            <small>Column</small>
+                            <small>Fails</small>
+                            <small>Success</small>
+                        </div>
+                        <template x-for="x in test?.steps">
+                            <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 items-center hover:bg-slate-300">
+                                <small class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="x.human_type"></small>
+                                <small x-text="x.value"></small>
+                                <small x-text="x.field_value"></small>
+                                <small class="text-center"><span :class="x.fromSheet ? 'bg-green-500' : 'bg-red-500'" class="rounded-full w-4 h-4 inline-block"></span></small>
+                                <small x-text="x.column"></small>
+                                <small x-text="x.fails"></small>
+                                <small x-text="x.success"></small>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input value="number of threads" />
+        <input type="text" value="chunk in" />
+        <input value="pasue between chunks" />
+        <input value="pause between threads in chucnk" />
     </div>
     <script>
         const test = () => ({
             testId: null,
+            test: null,
+            sheet: {
+                show: false,
+                head: [],
+                rows: 0,
+                name: null
+            },
             init() {
                 let params = new URLSearchParams(document.location.search);
                 this.testId = params.get("id")
+                this.retrieveTest()
+            },
+            async retrieveTest() {
+                const params = new URLSearchParams({
+                    id: this.testId
+                })
+                const response = await fetch('http://localhost:5000/tests/' + this.testId)
+                const json = await response.json()
+                this.test = json.data.test
+                for (const x of this.test.steps) {
+                    x.fromSheet = false
+                    x.column = 'N/A'
+                    x.fails = 0
+                    x.success = 0
+                }
+                console.log(json)
+            },
+            async uploadSheet(files) {
+                console.log(files)
+                const formData = new FormData()
+                formData.append('sheet', files[0])
+                const response = await fetch('http://localhost:5000/sheet/upload', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'accept': 'application/json'
+                    }
+                })
+                const json = await response.json()
+                console.log(json)
+                this.sheet.head = json.data.head
+                this.sheet.rows = json.data.rows
+                this.sheet.name = json.data.name
+                this.sheet.show = true;
             }
         })
     </script>

@@ -11,6 +11,28 @@ bp = Blueprint('tests', __name__, url_prefix='/tests')
 
 
 #
+@bp.route('/<id>', methods=['GET'])
+def show(id):
+    db = get_db()
+    errors = []
+    response = db.execute( 'SELECT * FROM test WHERE id = ?', [id] ).fetchone()
+    testRow = {
+        'id': response['id'],
+        'name': response['name'],
+        'created': datetime.fromtimestamp(response['created']).strftime('%d-%b-%Y %H:%M'),
+        'steps': ast.literal_eval(response['body'])
+    }
+
+    data = {
+        'test': testRow
+    }
+
+    jsonData = { 'success': True, 'message': 'Tests retrieved', 'data': data, 'errors': errors }
+    response = Response(jsonData, status = 200)
+    return response.make_json_response()
+
+
+#
 @bp.route('/', methods=['GET'])
 def list():
     db = get_db()
