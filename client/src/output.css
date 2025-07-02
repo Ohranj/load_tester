@@ -16,6 +16,7 @@
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-blue-500: oklch(62.3% 0.214 259.815);
+    --color-slate-100: oklch(96.8% 0.007 247.896);
     --color-slate-200: oklch(92.9% 0.013 255.508);
     --color-slate-300: oklch(86.9% 0.022 252.894);
     --color-slate-400: oklch(70.4% 0.04 256.788);
@@ -240,6 +241,9 @@
   .col-span-2 {
     grid-column: span 2 / span 2;
   }
+  .float-right {
+    float: right;
+  }
   .mx-auto {
     margin-inline: auto;
   }
@@ -263,6 +267,9 @@
   }
   .mb-12 {
     margin-bottom: calc(var(--spacing) * 12);
+  }
+  .ml-auto {
+    margin-left: auto;
   }
   .block {
     display: block;
@@ -335,6 +342,9 @@
   }
   .w-\[75px\] {
     width: 75px;
+  }
+  .w-\[90\%\] {
+    width: 90%;
   }
   .w-\[90px\] {
     width: 90px;
@@ -467,8 +477,14 @@
   .gap-y-6 {
     row-gap: calc(var(--spacing) * 6);
   }
+  .self-end {
+    align-self: flex-end;
+  }
   .self-start {
     align-self: flex-start;
+  }
+  .justify-self-end {
+    justify-self: flex-end;
   }
   .overflow-hidden {
     overflow: hidden;
@@ -485,6 +501,10 @@
   .rounded-t-md {
     border-top-left-radius: var(--radius-md);
     border-top-right-radius: var(--radius-md);
+  }
+  .rounded-b-md {
+    border-bottom-right-radius: var(--radius-md);
+    border-bottom-left-radius: var(--radius-md);
   }
   .border {
     border-style: var(--tw-border-style);
@@ -579,6 +599,9 @@
   .text-left {
     text-align: left;
   }
+  .text-right {
+    text-align: right;
+  }
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -659,10 +682,21 @@
     --tw-duration: 500ms;
     transition-duration: 500ms;
   }
+  .first\:rounded-t-md {
+    &:first-child {
+      border-top-left-radius: var(--radius-md);
+      border-top-right-radius: var(--radius-md);
+    }
+  }
   .last\:rounded-b-md {
     &:last-child {
       border-bottom-right-radius: var(--radius-md);
       border-bottom-left-radius: var(--radius-md);
+    }
+  }
+  .odd\:bg-slate-100 {
+    &:nth-child(odd) {
+      background-color: var(--color-slate-100);
     }
   }
   .odd\:bg-slate-200 {

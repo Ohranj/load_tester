@@ -8,20 +8,20 @@
     <title>Test</title>
 </head>
 <body x-data="test">
-    <div class="p-4 space-y-16">
+    <div class="p-4 space-y-16 w-[90%] mx-auto">
         <div>
             <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>Previous Runs</h1>
         </div>
         <div>
             <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>New Run</h1>
-            <div class="mt-2">
+            <div class="mt-2 bg-slate-700 rounded-md p-4">
                 <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0" @change="uploadSheet($el.files)" />
-                <button class="bg-orange-500 cursor-pointer hover:bg-orange-600 rounded-md min-w-[75px] px-2 py-0.5 font-semibold shadow shadow-black border text-white" @click="$refs.i_upload.click()">Upload .xlsx</button>
-                <div x-cloak x-show="sheet.show" x-collapse class="mt-2">
-                    <small class="font-semibold">Sample data</small>
+                <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="$refs.i_upload.click()"><span>Upload Sheet</span><img src="./images/icons/folder.svg" class="w-8 h-8" /></button>
+                <div x-cloak x-show="sheet.show" x-collapse class="mt-2 text-white">
+                    <small class="font-semibold">Sample data: <span x-text="sheet.name"></span></small>
                     <div class="shadow shadow-black">
                         <template x-for="row in sheet.head">
-                            <div class="grid grid-cols-7 even:bg-slate-200">
+                            <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black">
                                 <template x-for="x in row">
                                     <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap"
                                         x-text="x"></small>
@@ -33,7 +33,7 @@
                         Total Rows:- <span x-text="sheet.rows"></span>
                     </small>
                 </div>
-                <div class="mt-20">
+                <!-- <div class="mt-20">
                     <div class="rounded-md shadow shadow-black">
                         <div class="grid grid-cols-7 gap-x-1 p-1 items-center font-semibold bg-slate-700 text-white rounded-t-md">
                             <small>Action</small>
@@ -56,13 +56,15 @@
                             </div>
                         </template>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
         <input value="number of threads" />
         <input type="text" value="chunk in" />
         <input value="pasue between chunks" />
         <input value="pause between threads in chucnk" />
+        <input value="Start from row" />
+        <input value="End at row" />
     </div>
     <script>
         const test = () => ({
