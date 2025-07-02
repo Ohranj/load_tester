@@ -21,14 +21,32 @@
                     <small class="col-span-2">Created</small>
                     <small></small>
                 </div>
-                <template x-for="x in tests">
-                    <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 odd:bg-slate-300 hover:bg-slate-300">
+                <template x-for="x in tests.list">
+                    <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 odd:bg-slate-300 hover:bg-slate-300 last:rounded-b-md">
                         <small class="col-span-2" x-text="x.name"></small>
                         <small class="col-span-2" x-text="x.start"></small>
                         <small class="col-span-2" x-text="x.created"></small>
-                        <small>action / delete / export</small>
+                        <small class="relative" x-data="{dropdown: false}">
+                            <button class="cursor-pointer w-[75px] font-semibold rounded-md bg-orange-500 hover:bg-orange-600 text-white px-2 py-0.5" @click="dropdown = true" @click.away="dropdown = false">Action</button>
+                            <div x-cloak x-show="dropdown" x-collapse class="absolute z-1 w-full right-4">
+                                <div class="bg-white border rounded py-1 shadow shadow-black space-y-1 text-xs whitespace-nowrap text-black font-semibold">
+                                    <a target="_blank" :href='"/test?id=" + x.id' class="hover:bg-slate-500 hover:text-white px-2 py-1 w-full block">Run Load Test</a>
+                                    <button class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1" @click="builder.steps=x.steps;onTestRunClicked()"><x-svg.trash class="w-4 h-4" fill="none" stroke="currentColor" />Run Test</button>
+                                    <button class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1" @click="console.log(2)"><x-svg.trash class="w-4 h-4" fill="none" stroke="currentColor" />Export Test</button>
+                                    <hr class="border border-dashed border-slate-400">
+                                    <button class="w-full py-0.5 hover:bg-red-400 cursor-pointer hover:text-white hover:ring-red-400 px-2 text-left flex items-center" @click="console.log(2)">Delete</button>
+                                </div>
+                            </div>
+                        </small>
                     </div>
                 </template>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+                <small>Showing page <span x-text="tests.currentPage"></span> of <span x-text="tests.totalPages"></span></small>
+                <div class="text-sm font-semibold">
+                    <button class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer" @click="tests.currentPage -= 1; retrieveTests()" :disabled="tests.currentPage <= 1">Previous</button>
+                    <button class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer" @click="tests.currentPage += 1;retrieveTests()" :disabled="tests.currentPage >= tests.totalPages">Next</button>
+                </div>
             </div>
         </div>
         <div class="w-full xl:w-[75%] relative">
@@ -177,7 +195,7 @@
                 </template>
             </div>
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-4 pb-12">
             <template x-for="x in builder.screenshots">
                 <div class="rounded-md shadow shadow-black p-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
                     <img :src="'data:image/png;base64,' + x.encoding" class="w-[300px] h-auto rounded-md" />
@@ -185,7 +203,7 @@
                 </div>
             </template>
         </div>
-        <div x-cloak x-show="toast.show" x-transition class="fixed right-2 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px] z-10">
+        <div x-cloak x-show="toast.show" x-transition class="fixed right-4 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px] z-10">
             <div class="flex items-center justify-between p-2">
                 <h1 class="font-semibold" x-text="toast.title"></h1>
                 <span :class="toast.success ? 'bg-green-500' : 'bg-red-500'" class="w-4 h-4 rounded-full"></span>
@@ -219,7 +237,11 @@
                 title: '',
                 content: ''
             },
-            tests: [],
+            tests: {
+                list: [],
+                currentPage: 1,
+                totalPages: 1
+            },
             builder: {
                 actions: null,
                 elementLookups: null,
@@ -262,9 +284,13 @@
                 })
             },
             async retrieveTests() {
-                const response = await fetch('http://localhost:5000/tests/')
+                const params = new URLSearchParams({
+                    page: this.tests.currentPage
+                })
+                const response = await fetch('http://localhost:5000/tests?' + params)
                 const json = await response.json()
-                this.tests = json.data.tests;
+                this.tests.list = json.data.tests;
+                this.tests.totalPages = json.data.totalPages
             },
             async retrieveConfigVars() {
                 const response = await fetch('http://localhost:5000/configure/list')
@@ -288,7 +314,7 @@
                 if (!response.ok) {
                     const errors = json.errors;
                     this.toast.title = 'Test Run: Failed'
-                    this.toast.content = json.errors[0].message || 'Please check the steps involved and try again'
+                    this.toast.content = `Failed on step ${json.data.completedSteps + 1}`
                     this.toast.success = false;
                     this.toast.show = true;
                     return
@@ -378,18 +404,18 @@
                 console.log(json)
                 if (!response.ok) {
                     const errors = json.errors;
-                    this.toast.title = 'Test Run: Failed'
-                    this.toast.content = json.errors[0].message || 'Please check the steps involved and try again'
+                    this.toast.title = 'Test Stored: Failed'
+                    this.toast.content = json.errors[0].message || 'Please check that the name given has not already been used'
                     this.toast.success = false;
                     this.toast.show = true;
                     return
                 }
                 await this.retrieveTests()
                 this.modals.store.show = false;
-                this.toast.title = 'Test Run: Success'
-                this.toast.content = 'Test completed successfully.'
+                this.toast.title = 'Test Stored: Success'
                 this.toast.success = true;
                 this.toast.show = true;
+                this.builder.steps.length = 0;
             },
             ...e
         })

@@ -1,5 +1,6 @@
 import time
 import ast
+import math
 from datetime import datetime
 from .helpers.Response import Response
 from flask import ( Blueprint, request )
@@ -14,23 +15,26 @@ bp = Blueprint('tests', __name__, url_prefix='/tests')
 def list():
     db = get_db()
     errors = []
-    response = [];
-    try:
-        response = db.execute( 'SELECT * FROM test' ).fetchall()
-        db.commit()
-    except Exception as err:
-        errors.append({ 'message': 'Please check that the tests name is unique' });
-    tests = [];
+    #Show 5 per page
+    page = request.args.get('page')
+    offset = (int(page) - 1) * 5
+    response = db.execute( 'SELECT * FROM test LIMIT ? OFFSET ?', [5, offset] ).fetchall()
+    rowsAsJson = [];
     for x in response:
-        tests.append({
+        rowsAsJson.append({
             'id': x['id'],
             'name': x['name'],
             'start': ast.literal_eval(x['body'])[0]['value'],
-            'created': datetime.fromtimestamp(x['created']).strftime('%d-%b-%Y %H:%M')
+            'created': datetime.fromtimestamp(x['created']).strftime('%d-%b-%Y %H:%M'),
+            'steps': ast.literal_eval(x['body'])
         })
 
+    totalRows = db.execute('SELECT COUNT(*) as count FROM test').fetchone()
+
     data = {
-        'tests': tests
+        'tests': rowsAsJson,
+        'totalRows': totalRows['count'],
+        'totalPages': math.ceil(totalRows['count'] / 5)
     }
 
     jsonData = { 'success': True, 'message': 'Tests retrieved', 'data': data, 'errors': errors }
@@ -53,11 +57,8 @@ def store():
         db.commit()
     except Exception as err:
         didSucceed = False;
-        errors.append({ 'message': 'Please check that the tests name is unique' });
+        errors.append({ 'message': 'Check that the tests name is unique' });
     jsonData = { 'success': True, 'message': 'Test stored', 'data': [], 'errors': errors }
     status = 200 if didSucceed else 422
     response = Response(jsonData, status = status)
     return response.make_json_response()
-
-
-#Tidy up how to store json ni sqlite
