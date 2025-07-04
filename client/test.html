@@ -19,19 +19,21 @@
                 <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="$refs.i_upload.click()"><span>Upload Sheet</span><img src="./images/icons/folder.svg" class="w-8 h-8" /></button>
                 <div x-cloak x-show="sheet.show" x-collapse class="mt-2 text-white">
                     <small class="font-semibold">Sample data: <span x-text="sheet.name"></span></small>
-                    <div class="shadow shadow-black">
+                    <div class="shadow shadow-black min-w-[750px] max-w-full overflow-x-scroll">
                         <template x-for="row in sheet.head">
-                            <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black">
+                            <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black" :style="'width:' + (250 * sheet.cols) + 'px'">
                                 <template x-for="x in row">
-                                    <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap"
-                                        x-text="x"></small>
+                                    <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap" x-text="x"></small>
                                 </template>
                             </div>
                         </template>
                     </div>
-                    <small>
-                        Total Rows:- <span x-text="sheet.rows"></span>
-                    </small>
+                    <small class="font-semibold">Total Rows available:- <span x-text="sheet.rows"></span></small>
+                    <small class="font-semibold">Total Cols available:- <span x-text="sheet.cols"></span></small>
+                </div>
+                <div x-cloak x-show="!sheet.show && !existingSheets.length" class="text-center flex flex-col space-y-2 text-white">
+                    <img src="/images/icons/info.svg" class="w-8 h-8 mx-auto inline-block" />
+                    <small>Import a sheet to load test against dynamic values</small>
                 </div>
                 <!-- <div class="mt-20">
                     <div class="rounded-md shadow shadow-black">
@@ -58,6 +60,9 @@
                     </div>
                 </div> -->
             </div>
+            <div class="mt-20">
+                <small>Test steps</small>
+            </div>
         </div>
         <input value="number of threads" />
         <input type="text" value="chunk in" />
@@ -70,10 +75,12 @@
         const test = () => ({
             testId: null,
             test: null,
+            existingSheets: [],
             sheet: {
                 show: false,
                 head: [],
                 rows: 0,
+                cols: 0,
                 name: null
             },
             init() {
@@ -97,7 +104,6 @@
                 console.log(json)
             },
             async uploadSheet(files) {
-                console.log(files)
                 const formData = new FormData()
                 formData.append('sheet', files[0])
                 const response = await fetch('http://localhost:5000/sheet/upload', {
@@ -109,9 +115,14 @@
                 })
                 const json = await response.json()
                 console.log(json)
+                if (!response.ok) {
+                    alert('failed')
+                    return
+                }
                 this.sheet.head = json.data.head
                 this.sheet.rows = json.data.rows
                 this.sheet.name = json.data.name
+                this.sheet.cols = json.data.cols
                 this.sheet.show = true;
             }
         })

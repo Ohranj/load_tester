@@ -5,10 +5,18 @@ CREATE TABLE test (
     created INTEGER NOT NULL
 );
 
+CREATE TABLE sheet (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    path TEXT UNIQUE NOT NULL,
+    rows INTEGER DEFAULT 0,
+    cols INTEGER DEFAULT 0,
+    created INTEGER NOT NULL
+);
+
 CREATE TABLE run (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     test_id INTEGER NOT NULL,
     created INTEGER NOT NULL,
     FOREIGN KEY (test_id) REFERENCES test (id)
-)
-
+);

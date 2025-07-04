@@ -3,10 +3,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from PIL import Image
 from .Configs import Configs
-import time, io, base64, os, glob
+import time, io, base64, os, glob, pathlib
 
 class BuildTest:
-    screenshotDir = './screenshots/temp/'
+    screenshotDir = './screenshots/temp'
     completedSteps = 0
     def __init__(self, steps):
         self.screenshotPaths = [];
@@ -26,7 +26,10 @@ class BuildTest:
                     time.sleep(x['value'])
                 case 'screenshot':
                     path = int(time.time()) + idx
-                    self.driver.save_screenshot(f"{self.screenshotDir}{path}.png")
+                    dir_exists = os.path.isdir(self.screenshotDir)
+                    if dir_exists == False:
+                        pathlib.Path(self.screenshotDir).mkdir(parents=True)
+                    self.driver.save_screenshot(f"{self.screenshotDir}/{path}.png")
                     self.screenshotPaths.append({'path': path, 'name': x['screenshot_name']})
                 case 'input':
                     actions = Configs()
@@ -65,7 +68,7 @@ class BuildTest:
     def retrieve_screenshots(self):
         screenshots = [];
         for x in self.screenshotPaths:
-            path = f"{self.screenshotDir}{x['path']}.png"
+            path = f"{self.screenshotDir}/{x['path']}.png"
             encodedImg = self.get_encoded_img(path)
             screenshots.append({'encoding': encodedImg, 'name': x['name']})
         return screenshots
@@ -76,7 +79,7 @@ class BuildTest:
         encoded_img = base64.encodebytes(img_byte_arr.getvalue()).decode('ascii')
         return encoded_img
     def trash_existing_temp_screenshots(self):
-        files = glob.glob(self.screenshotDir + '*')
+        files = glob.glob(self.screenshotDir + '/*')
         for f in files:
             os.remove(f)
     def closeDriver(self):
