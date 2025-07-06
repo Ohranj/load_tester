@@ -1,9 +1,8 @@
 from .helpers.Response import Response
 from flask import ( Blueprint, request )
 import openpyxl
-import time
-import os
-import pathlib
+from datetime import datetime
+import os, time, pathlib
 from flaskr.db import get_db
 
 bp = Blueprint('sheet', __name__, url_prefix='/sheet')
@@ -53,6 +52,28 @@ def upload():
     }
 
     jsonData = { 'success': didSucceed, 'message': 'Sheet uploaded', 'data': data, 'errors': [] }
+    response = Response(jsonData, status = 200)
+    return response.make_json_response()
+
+@bp.route('/list', methods=['GET'])
+def list():
+    db = get_db()
+    response = db.execute('SELECT * FROM sheet').fetchall()
+    sheets = [];
+    for x in response: 
+        sheets.append({
+            'id': x['id'],
+            'path': x['path'],
+            'name': x['name'],
+            'rows': x['rows'],
+            'cols': x['cols'],
+            'created': datetime.fromtimestamp(x['created']).strftime('%d-%b-%Y %H:%M'),
+        })
+
+    data = {
+        'sheets': sheets
+    }
+    jsonData = { 'success': True, 'message': 'Sheets retrieved', 'data': data, 'errors': [] }
     response = Response(jsonData, status = 200)
     return response.make_json_response()
 

@@ -388,6 +388,18 @@
   .max-w-2xl {
     max-width: var(--container-2xl);
   }
+  .max-w-\[50px\] {
+    max-width: 50px;
+  }
+  .max-w-\[100px\] {
+    max-width: 100px;
+  }
+  .max-w-\[150px\] {
+    max-width: 150px;
+  }
+  .max-w-\[200px\] {
+    max-width: 200px;
+  }
   .max-w-\[300px\] {
     max-width: 300px;
   }
@@ -522,6 +534,9 @@
   }
   .gap-x-2 {
     column-gap: calc(var(--spacing) * 2);
+  }
+  .gap-x-8 {
+    column-gap: calc(var(--spacing) * 8);
   }
   .gap-y-6 {
     row-gap: calc(var(--spacing) * 6);
