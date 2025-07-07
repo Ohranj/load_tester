@@ -2,6 +2,14 @@ from .helpers.Response import Response
 from .helpers.Configs import Configs
 from .helpers.BuildTest import BuildTest
 from selenium.common.exceptions import NoSuchElementException
+import threading
+import time
+from flaskr.db import get_db
+from flaskr.sheet import read_sheet
+from threading import Lock
+
+
+data_lock = Lock()
 
 
 from flask import ( Blueprint, request )
@@ -57,3 +65,52 @@ def run_test():
     status = 200 if didSucceed else 422
     response = Response(jsonData, status)
     return response.make_json_response()
+
+
+@bp.route('/load/<id>', methods=['POST'])
+def run_load(id):
+    body = request.get_json()
+
+    db = get_db()
+    sheet = db.execute('SELECT * FROM sheet WHERE id = ?', [body['sheet']]).fetchone()
+    df = read_sheet(sheet['path'])
+
+    computedSteps = [];
+    startRow = body['settings']['row'];
+    threadCount = body['settings']['threads']
+    for i in range(startRow, startRow + threadCount):
+        threadSteps = [];
+        for val in body['steps']:
+            if val['dynamic']:
+                cellValue = df[val['column'].upper() + str(i)].value
+                if val['type'] == 'input':
+                    val['field_value'] = cellValue
+                else:
+                    val['value'] = cellValue
+            threadSteps.append(val.copy())
+        computedSteps.append(threadSteps)
+
+    thread_list = list()
+
+    print(body['settings'])
+
+    for i in range(0, body['settings']['threads']):
+        t = threading.Thread(name='Test {}'.format(i), target=temp, args=(i, computedSteps[i]))
+        t.start()
+        time.sleep(body['settings']['threadBreak'])
+        print('Test ' + str(i + 1) + ': started!')
+        thread_list.append(t)
+
+    for thread in thread_list:
+        thread.join()
+
+    jsonData = { 'success': True, 'message': 'Test completed', 'data': [], 'errors': [] }
+    status = 200
+    response = Response(jsonData, status)
+    return response.make_json_response()
+
+def temp(i, steps):
+    runner = BuildTest(steps)
+    runner.setupDriver()
+    runner.run()
+    runner.closeDriver()

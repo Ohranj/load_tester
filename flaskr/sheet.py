@@ -5,7 +5,7 @@ from datetime import datetime
 import os, time, pathlib
 from flaskr.db import get_db
 
-bp = Blueprint('sheet', __name__, url_prefix='/sheet')
+bp = Blueprint('sheet', __name__, url_prefix='/sheets')
 
 upload_sheets_dir = './uploads/sheets'
 head_rows = 6
@@ -36,19 +36,14 @@ def upload():
         didSucceed = False;
         print(err);
         errors.append({ 'message': 'Unable to store file. Check logs for further info' });
-    
+
     if didSucceed == False:
         jsonData = { 'success': didSucceed, 'message': 'Sheet upload failed', 'data': [], 'errors': errors }
         response = Response(jsonData, status = 422)
         return response.make_json_response()
 
-    head = read_sheet_head(sheet);
-
     data = {
-        'head': head,
-        'name': uploaded_file.filename,
-        'rows': sheet.max_row,
-        'cols': sheet.max_column
+        'id': 2
     }
 
     jsonData = { 'success': didSucceed, 'message': 'Sheet uploaded', 'data': data, 'errors': [] }
@@ -60,7 +55,7 @@ def list():
     db = get_db()
     response = db.execute('SELECT * FROM sheet').fetchall()
     sheets = [];
-    for x in response: 
+    for x in response:
         sheets.append({
             'id': x['id'],
             'path': x['path'],
@@ -74,6 +69,37 @@ def list():
         'sheets': sheets
     }
     jsonData = { 'success': True, 'message': 'Sheets retrieved', 'data': data, 'errors': [] }
+    response = Response(jsonData, status = 200)
+    return response.make_json_response()
+
+@bp.route('/list/<id>', methods=['GET'])
+def show(id):
+    db = get_db()
+    response = db.execute( 'SELECT * FROM sheet WHERE id = ?', [id] ).fetchone()
+    sheet = read_sheet(response['path'])
+    head = read_sheet_head(sheet);
+
+    data = {
+        'sheet': {
+            'meta': {
+                'id': response['id'],
+                'name': response['name'],
+                'rows': response['rows'],
+                'cols': response['cols'],
+            },
+            'head': head
+        }
+    }
+    jsonData = { 'success': True, 'message': 'Sheets retrieved', 'data': data, 'errors': [] }
+    response = Response(jsonData, status = 200)
+    return response.make_json_response()
+
+@bp.route('/<id>', methods=['DELETE'])
+def trash(id):
+    db = get_db()
+    db.execute( 'DELETE FROM sheet WHERE id = ?', [id] );
+    db.commit()
+    jsonData = { 'success': True, 'message': 'Sheet upload failed', 'data': [], 'errors': [] }
     response = Response(jsonData, status = 200)
     return response.make_json_response()
 

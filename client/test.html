@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,99 +8,217 @@
     <script src="./src/app.js" type="module" defer></script>
     <title>Test</title>
 </head>
+
 <body x-data="test">
     <div class="p-4 space-y-16 w-[90%] mx-auto">
         <div>
-            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>Previous Runs</h1>
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img
+                        src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>Previous Runs</h1>
         </div>
         <div>
-            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>New Run</h1>
+            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img
+                        src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>New Run</h1>
             <div class="mt-2 bg-slate-700 rounded-md p-4">
-                <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0" @change="uploadSheet($el.files)" />
-                <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="$refs.i_upload.click()"><span>Upload Sheet</span><img src="./images/icons/folder.svg" class="w-8 h-8" /></button>
-                <div x-cloak x-show="existingSheets.length" class="mt-4 text-white font-semibold">
-                    <h2 class="underline underline-offset-2">Stored Sheets</h2>
-                    <template x-for="x in existingSheets">
-                        <div class="flex items-center gap-x-8">
-                            <small class="w-[200px] overflow-hidden text-ellipsis whitespace-nowrap]" x-text="x.name"></small>
-                            <small x-text="x.rows + ' Rows'"></small>
-                            <small x-text="x.cols + ' Cols'"></small>
-                            <small x-text="x.created"></small>
-                            <button class="text-sm cursor-pointer rounded-md border px-2 py-0.5 bg-orange-500 hover:bg-orange-600">Select</button>
+                <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0"
+                    @change="uploadSheet($el.files)" />
+                <button
+                    class="bg-orange-500 flex float-right items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
+                    @click="$refs.i_upload.click()"><span>Upload Sheet</span><img src="./images/icons/folder.svg"
+                        class="w-8 h-8" /></button>
+                <div x-cloak x-show="existingSheets.length" class="mt-10 text-white font-semibold">
+                    <h2 class="underline underline-offset-2 text-lg">Existing Sheets</h2>
+                    <div class="border rounded-md p-2 bg-slate-200 text-black mt-1">
+                        <div class="grid grid-cols-5 items-center gap-x-8 font-semibold">
+                            <small>File name</small>
+                            <small>Row Count</small>
+                            <small>Column Count</small>
+                            <small>Uploaded</small>
+                            <small></small>
                         </div>
-                    </template>
+                        <template x-for="x in existingSheets">
+                            <div class="grid grid-cols-5 items-center gap-x-8 py-0.5 text-sm">
+                                <small class="overflow-hidden text-ellipsis whitespace-nowrap]" x-text="x.name"></small>
+                                <small x-text="x.rows"></small>
+                                <small x-text="x.cols"></small>
+                                <small x-text="x.created"></small>
+                                <div x-data="{show: false}" class="relative">
+                                    <button @click="show = !show" @click.away="show = false"
+                                        class="bg-orange-500 rounded-md text-white px-2 py-0.5 min-w-[75px] cursor-pointer">Action</button>
+                                    <div x-cloak x-show="show" x-collapse
+                                        class="absolute bg-white border shadow border-black rounded-md min-w-[200px]">
+                                        <ul>
+                                            <li class="p-2 cursor-pointer hover:bg-slate-200 rounded-t-md"
+                                                @click="retrieveSheet(x.id)">Select sheet</li>
+                                            <hr>
+                                            <li class="p-2 cursor-pointer bg-red-200 hover:bg-red-300 rounded-b-md"
+                                                @click="trashSheet(x.id)">Trash sheet</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
                 <div x-cloak x-show="sheet.show" x-collapse class="mt-2 text-white">
                     <small class="font-semibold">Sample data: <span x-text="sheet.name"></span></small>
                     <div class="shadow shadow-black min-w-[750px] max-w-full overflow-x-scroll">
                         <template x-for="row in sheet.head">
-                            <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black" :style="'width:' + (250 * sheet.cols) + 'px'">
+                            <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black"
+                                :style="'width:' + (250 * sheet.cols) + 'px'">
                                 <template x-for="x in row">
-                                    <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap" x-text="x"></small>
+                                    <small
+                                        class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap"
+                                        x-text="x"></small>
                                 </template>
                             </div>
                         </template>
                     </div>
-                    <small class="font-semibold">Total Rows available:- <span x-text="sheet.rows"></span></small>
-                    <small class="font-semibold">Total Cols available:- <span x-text="sheet.cols"></span></small>
                 </div>
-                <div x-cloak x-show="!sheet.show && !existingSheets.length" class="text-center flex flex-col space-y-2 text-white">
+                <div x-cloak x-show="!sheet.show && !existingSheets.length"
+                    class="text-center flex flex-col space-y-2 text-white">
                     <img src="/images/icons/info.svg" class="w-8 h-8 mx-auto inline-block" />
                     <small>Import a sheet to load test against dynamic values</small>
                 </div>
-                <!-- <div class="mt-20">
-                    <div class="rounded-md shadow shadow-black">
-                        <div class="grid grid-cols-7 gap-x-1 p-1 items-center font-semibold bg-slate-700 text-white rounded-t-md">
-                            <small>Action</small>
-                            <small>Identifier</small>
-                            <small>Value</small>
-                            <small class="text-center">Swap out from .xlsx</small>
-                            <small>Column</small>
-                            <small>Fails</small>
-                            <small>Success</small>
-                        </div>
-                        <template x-for="x in test?.steps">
-                            <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 items-center hover:bg-slate-300">
-                                <small class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="x.human_type"></small>
-                                <small x-text="x.value"></small>
-                                <small x-text="x.field_value"></small>
-                                <small class="text-center"><span :class="x.fromSheet ? 'bg-green-500' : 'bg-red-500'" class="rounded-full w-4 h-4 inline-block"></span></small>
-                                <small x-text="x.column"></small>
-                                <small x-text="x.fails"></small>
-                                <small x-text="x.success"></small>
-                            </div>
-                        </template>
-                    </div>
-                </div> -->
             </div>
-            <div class="mt-20">
-                <small>Test steps</small>
+            <div class="mt-20 space-y-2 w-fit">
+                <template x-for="(step, idx) in test?.steps">
+                    <div class="flex items-center gap-x-2 relative cursor-pointer" x-data="{popup: false}"
+                        @mouseover="popup=true" @mouseout="popup=false">
+                        <div
+                            class="w-[25px] h-[25px] bg-slate-700 font-semibold text-white rounded-full border grid place-content-center">
+                            <small x-text="idx + 1"></small></div>
+                        <small
+                            class="inline-block w-[350px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 py-0.5 font-semibold"
+                            :class="popup ? 'bg-slate-300' : ''" x-text="step.displayTitle"></small>
+                        <div x-cloak x-show="popup"
+                            class="shadow shadow-black border rounded-md absolute -top-8 left-[375px] bg-slate-700 text-white min-w-[950px] p-2 min-h-[100px] z-1 flex flex-col space-y-1">
+                            <div class="grid grid-cols-6 items-center gap-x-4 p-1 font-semibold">
+                                <small>Key</small>
+                                <small class="col-span-3">Value</small>
+                                <small class="text-center">Make Dynamic</small>
+                                <small class="text-center">Read From Column</small>
+                            </div>
+                            <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                <small>Step type</small>
+                                <small class="col-span-3" x-text="step.human_type"></small>
+                            </div>
+                            <template x-if="step.type == 'visit' || step.type == 'sleep'">
+                                <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                    <small>Raw Value</small>
+                                    <small class="col-span-3" x-text="step.value"></small>
+                                    <div class="flex gap-x-2 items-center mx-auto">
+                                        <div class="relative cursor-pointer flex gap-x-2"
+                                            @click="step.dynamic = !step.dynamic">
+                                            <input type="checkbox" class="sr-only" :checked="step.dynamic">
+                                            <div class="block w-8 h-4 rounded-full bg-green-600"
+                                                :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
+                                            <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]"
+                                                :class="step.dynamic ? 'translate-x-full' : ''"></div>
+                                        </div>
+                                    </div>
+                                    <input :disabled="!step.dynamic" x-model="step.column"
+                                        class="text-center border rounded-md w-[50px] mx-auto" />
+                                </div>
+                            </template>
+                            <template x-if="step.type == 'click'">
+                                <div class="space-y-1">
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Element Lookup Attribute</small>
+                                        <small class="col-span-3"
+                                            x-text="config.elementLookups[step.selector_type].human_type"></small>
+                                    </div>
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Element Attribute Value</small>
+                                        <small class="col-span-3" x-text="step.value"></small>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="step.type == 'input'">
+                                <div class="space-y-1">
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Field Type</small>
+                                        <small class="col-span-3"
+                                            x-text="config.fieldTypes[step.field_type_id].human_type"></small>
+                                    </div>
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Field Value</small>
+                                        <small class="col-span-3" x-text="step.field_value"></small>
+                                        <div class="flex gap-x-2 items-center mx-auto">
+                                            <div class="relative cursor-pointer flex gap-x-2"
+                                                @click="step.dynamic = !step.dynamic">
+                                                <input type="checkbox" class="sr-only" :checked="step.dynamic">
+                                                <div class="block w-8 h-4 rounded-full bg-green-600"
+                                                    :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
+                                                <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]"
+                                                    :class="step.dynamic ? 'translate-x-full' : ''"></div>
+                                            </div>
+                                        </div>
+                                        <input :disabled="!step.dynamic" x-model="step.column"
+                                            class="border rounded-md w-[50px] mx-auto text-center" />
+                                    </div>
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Element Lookup Attribute</small>
+                                        <small class="col-span-3"
+                                            x-text="config.elementLookups[step.selector_type].human_type"></small>
+                                    </div>
+                                    <div class="grid grid-cols-6 items-center gap-x-4 px-1">
+                                        <small>Element Attribute Value</small>
+                                        <small class="col-span-3" x-text="step.value"></small>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
-        <input value="number of threads" />
-        <input type="text" value="chunk in" />
-        <input value="pasue between chunks" />
-        <input value="pause between threads in chucnk" />
-        <input value="Start from row" />
-        <input value="End at row" />
+        <div class="bg-slate-700 p-4 rounded-md shadow shadow-black text-white space-y-2">
+            <div class="flex items-center">
+                <small class="text-white inline-block w-[300px]"># of threads (Browsers to simulate)</small>
+                <input type="number" x-model="runSettings.threads" class="border rounded-md px-2 py-0.5 w-[55px] text-center" />
+            </div>
+            <div class="flex items-center">
+                <small class="text-white inline-block w-[300px]">Starting from Row</small>
+                <input type="number" x-model="runSettings.row" class="border rounded-md px-2 py-0.5 w-[55px] text-center" />
+            </div>
+            <div>
+                <small>Run the simulation in chunks of <input type="number" x-model="runSettings.chunks"
+                        class="mx-1 border rounded-md px-2 py-0.5 text-center w-[50px]" /> with <input type="number" x-model="runSettings.chunkBreak"
+                        class="mx-1 border rounded-md px-2 py-0.5 text-center w-[50px]" /> seconds break between each
+                    chunk. And <input type="number" x-model.number="runSettings.threadBreak" class="mx-1 border rounded-md px-2 py-0.5 text-center w-[50px]" />
+                    seconds break between each browser spinning up</small>
+            </div>
+        </div>
+        <div>
+            <button
+                class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
+                @click="runLoad"><span>Run Load Test</span><img src="./images/icons/rocket.svg"
+                    class="w-8 h-8" /></button>
+        </div>
     </div>
     <script>
         const test = () => ({
+            config: {},
             testId: null,
             test: null,
             existingSheets: [],
             sheet: {
                 show: false,
-                head: [],
-                rows: 0,
-                cols: 0,
-                name: null
             },
+            runSettings: {},
             init() {
                 let params = new URLSearchParams(document.location.search);
                 this.testId = params.get("id")
                 this.retrieveSheets()
                 this.retrieveTest()
+                this.retrieveConfig()
+                this.runSettings = {
+                    threads: 2,
+                    row: 2,
+                    chunks: 1,
+                    chunkBreak: 0,
+                    threadBreak: 0
+                }
             },
             async retrieveTest() {
                 const params = new URLSearchParams({
@@ -109,21 +228,35 @@
                 const json = await response.json()
                 this.test = json.data.test
                 for (const x of this.test.steps) {
-                    x.fromSheet = false
-                    x.column = 'N/A'
+                    x.dynamic = false
+                    x.column = ''
                     x.fails = 0
                     x.success = 0
                 }
+                console.log(this.test.steps)
             },
             async retrieveSheets() {
-                const response = await fetch('http://localhost:5000/sheet/list')
+                const response = await fetch('http://localhost:5000/sheets/list')
                 const json = await response.json()
                 this.existingSheets = json.data.sheets
+            },
+            async retrieveConfig() {
+                const response = await fetch('http://localhost:5000/configure/list')
+                const json = await response.json()
+                console.log(json)
+                this.config = json.data
+            },
+            async retrieveSheet(id) {
+                const response = await fetch('http://localhost:5000/sheets/list/' + id);
+                const json = await response.json()
+                this.sheet.head = json.data.sheet.head
+                this.sheet = {...this.sheet, ...json.data.sheet.meta}
+                this.sheet.show = true
             },
             async uploadSheet(files) {
                 const formData = new FormData()
                 formData.append('sheet', files[0])
-                const response = await fetch('http://localhost:5000/sheet/upload', {
+                const response = await fetch('http://localhost:5000/sheets/upload', {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -131,16 +264,38 @@
                     }
                 })
                 const json = await response.json()
-                console.log(json)
                 if (!response.ok) {
                     alert('failed')
                     return
                 }
-                this.sheet.head = json.data.head
-                this.sheet.rows = json.data.rows
-                this.sheet.name = json.data.name
-                this.sheet.cols = json.data.cols
-                this.sheet.show = true;
+                this.retrieveSheets()
+                this.retrieveSheet(json.data.id)
+            },
+            async trashSheet(id) {
+                const response = await fetch('http://localhost:5000/sheets/' + id, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    return
+                }
+                this.retrieveSheets()
+            },
+            async runLoad(id) {
+                const response = await fetch('http://localhost:5000/configure/load/' + this.testId, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        testId: this.testId,
+                        steps: this.test.steps,
+                        sheet: this.sheet.id,
+                        settings: this.runSettings
+                    }),
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                const json = await response.json()
+                console.log(json)
             }
         })
     </script>

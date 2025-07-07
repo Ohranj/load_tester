@@ -8,9 +8,11 @@ import time, io, base64, os, glob, pathlib
 class BuildTest:
     screenshotDir = './screenshots/temp'
     completedSteps = 0
-    def __init__(self, steps):
+    loadTest = False
+    def __init__(self, steps, loadTest = False):
         self.screenshotPaths = [];
         self.steps = steps;
+        self.loadTest = loadTest;
     def setupDriver(self):
         driver = webdriver.Chrome()
         driver.set_window_size(1536, 864)
@@ -18,13 +20,14 @@ class BuildTest:
         self.driver = driver;
     def run(self):
         for idx, x in enumerate(self.steps):
-            print(x)
             match(x['type']):
                 case 'visit':
                     self.driver.get(x['value'])
                 case 'sleep':
                     time.sleep(x['value'])
                 case 'screenshot':
+                    if self.loadTest:
+                        return;
                     path = int(time.time()) + idx
                     dir_exists = os.path.isdir(self.screenshotDir)
                     if dir_exists == False:
