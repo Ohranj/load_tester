@@ -21,17 +21,13 @@
                 <span><img src="./images/icons/clipboard.svg" class="w-8 h-8 inline-block" /></span>New Run
             </h1>
             <div class="mt-2 bg-slate-700 rounded-md p-4">
-                <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0"
-                    @change="uploadSheet($el.files)" />
-                <button
-                    class="bg-orange-500 flex float-right items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
+                <input x-ref="i_upload" type="file" class="absolute invisible left-0 top-0 w-0" @change="uploadSheet($el.files)" />
+                <button class="bg-orange-500 flex float-right items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
                     @click="$refs.i_upload.click()">
                     <span>Upload Sheet</span><img src="./images/icons/folder.svg" class="w-8 h-8" />
                 </button>
                 <div x-cloak x-show="existingSheets.length" class="mt-10 text-white font-semibold">
-                    <h2 class="underline underline-offset-2 text-lg">
-                        Existing Sheets
-                    </h2>
+                    <h2 class="underline underline-offset-2 text-lg">Existing Sheets</h2>
                     <div class="border rounded-md p-2 bg-slate-200 text-black mt-1">
                         <div class="grid grid-cols-5 items-center gap-x-8 font-semibold">
                             <small class="underline underline-offset-2 decoration-2">File name</small>
@@ -47,22 +43,17 @@
                                 <small x-text="x.cols"></small>
                                 <small x-text="x.created"></small>
                                 <div x-data="{show: false}" class="relative">
-                                    <button
-                                        class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
-                                        @click="show = !show" @click.away="show = false">
+                                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="show = !show" @click.away="show = false">
                                         <span>Action</span><img src="./images/icons/clipboard.svg" class="w-8 h-8" />
                                     </button>
-                                    <div x-cloak x-show="show" x-collapse
-                                        class="absolute bg-white border shadow border-black rounded-md min-w-[200px]">
+                                    <div x-cloak x-show="show" x-collapse class="absolute bg-white border shadow border-black rounded-md min-w-[200px]">
                                         <ul>
-                                            <li class="p-2 cursor-pointer hover:bg-slate-200 rounded-t-md flex items-center gap-x-2"
-                                                @click="retrieveSheet(x.id)">
+                                            <li class="p-2 cursor-pointer hover:bg-slate-200 rounded-t-md flex items-center gap-x-2" @click="retrieveSheet(x.id)">
                                                 <img src="./images/icons/clipboard.svg" class="w-5 h-5" />
                                                 Select sheet
                                             </li>
                                             <hr />
-                                            <li class="p-2 cursor-pointer bg-red-200 hover:bg-red-300 rounded-b-md flex items-center gap-x-2"
-                                                @click="trashSheet(x.id)">
+                                            <li class="p-2 cursor-pointer bg-red-200 hover:bg-red-300 rounded-b-md flex items-center gap-x-2" @click="trashSheet(x.id)">
                                                 <img src="./images/icons/trash.svg" class="w-5 h-5" />
                                                 Trash sheet
                                             </li>
@@ -73,29 +64,23 @@
                         </template>
                     </div>
                 </div>
-                <div x-cloak x-show="!sheet.show && !existingSheets.length"
-                    class="text-center flex flex-col space-y-2 text-white">
+                <div x-cloak x-show="!sheet.show && !existingSheets.length" class="text-center flex flex-col space-y-2 text-white">
                     <img src="/images/icons/info.svg" class="w-8 h-8 mx-auto inline-block" />
-                    <small>Import a sheet to load test against dynamic
-                        values</small>
+                    <small>Import a sheet to load test against dynamic values</small>
                 </div>
             </div>
             <div x-cloak x-show="sheet.show" x-collapse class="my-10 text-white">
                 <small class="font-semibold text-black">Sample data: <span x-text="sheet.name"></span></small>
                 <div class="shadow shadow-black min-w-[750px] max-w-full overflow-x-scroll scrollbar-custom rounded-t-md border">
-                    <div class="grid text-black font-semibold"
-                        :style="'width:' + (250 * sheet.cols) + 'px; grid-template-columns:repeat(' + sheet.columns?.length + ', minmax(0, 1fr))'">
+                    <div class="grid text-black font-semibold" :style="'width:' + (250 * sheet.cols) + 'px; grid-template-columns:repeat(' + sheet.columns?.length + ', minmax(0, 1fr))'">
                         <template x-for="col in sheet.columns">
                             <small class="text-center border rounded-t-md" x-text="col"></small>
                         </template>
                     </div>
                     <template x-for="row in sheet.head">
-                        <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black"
-                            :style="'width:' + (250 * sheet.cols) + 'px;grid-template-columns:repeat(' + sheet.columns?.length + ', minmax(0, 1fr))'">
+                        <div class="grid grid-cols-7 even:bg-slate-200 odd:bg-slate-100 text-black" :style="'width:' + (250 * sheet.cols) + 'px;grid-template-columns:repeat(' + sheet.columns?.length + ', minmax(0, 1fr))'">
                             <template x-for="x in row">
-                                <small
-                                    class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap"
-                                    x-text="x"></small>
+                                <small class="px-1 py-0.5 border border-black overflow-hidden text-ellipsis whitespace-nowrap" x-text="x"></small>
                             </template>
                         </div>
                     </template>
@@ -103,22 +88,17 @@
             </div>
             <div class="mt-20 space-y-2 w-fit">
                 <template x-for="(step, idx) in test?.steps">
-                    <div class="flex items-center gap-x-2 relative cursor-pointer" x-data="{popup: false}"
-                        @mouseover="popup=true" @mouseout="popup=false">
-                        <div
-                            class="w-[25px] h-[25px] bg-slate-700 font-semibold text-white rounded-full border grid place-content-center">
+                    <div class="flex items-center gap-x-2 relative cursor-pointer" x-data="{popup: false}" @mouseover="popup=true" @mouseout="popup=false">
+                        <div class="w-[30px] h-[30px] bg-slate-700 font-semibold text-white rounded-full border grid place-content-center">
                             <small x-text="idx + 1"></small>
                         </div>
-                        <small
-                            class="inline-block w-[350px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 py-0.5 font-semibold"
-                            :class="popup ? 'bg-slate-300' : ''" x-text="step.displayTitle"></small>
-                        <div x-cloak x-show="popup"
-                            class="shadow shadow-black border rounded-md absolute -top-8 left-[375px] bg-slate-700 text-white min-w-[950px] p-2 min-h-[100px] z-1 flex flex-col space-y-1">
+                        <small class="inline-block w-[350px] overflow-hidden text-ellipsis whitespace-nowrap rounded-md border px-2 py-0.5 font-semibold" :class="popup ? 'bg-slate-300' : ''" x-text="step.displayTitle"></small>
+                        <div x-cloak x-show="popup" class="shadow shadow-black border rounded-md absolute -top-8 left-[375px] bg-slate-700 text-white min-w-[950px] p-2 min-h-[100px] z-1 flex flex-col space-y-1">
                             <div class="grid grid-cols-7 items-center gap-x-4 p-1 font-semibold">
                                 <small class="col-span-2">Key</small>
                                 <small class="col-span-3">Value</small>
                                 <small class="text-center">Make Dynamic</small>
-                                <small class="text-center">Read From Column</small>
+                                <small class="text-center">Read Column</small>
                             </div>
                             <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                 <small class="col-span-2">Step type</small>
@@ -132,22 +112,18 @@
                                         <div class="relative cursor-pointer flex gap-x-2"
                                             @click="step.dynamic = !step.dynamic">
                                             <input type="checkbox" class="sr-only" :checked="step.dynamic" />
-                                            <div class="block w-8 h-4 rounded-full bg-green-600"
-                                                :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
-                                            <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]"
-                                                :class="step.dynamic ? 'translate-x-full' : ''"></div>
+                                            <div class="block w-8 h-4 rounded-full bg-green-600" :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
+                                            <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]" :class="step.dynamic ? 'translate-x-full' : ''"></div>
                                         </div>
                                     </div>
-                                    <input :disabled="!step.dynamic" x-model="step.column"
-                                        class="text-center border rounded-md w-[50px] mx-auto" />
+                                    <input :disabled="!step.dynamic" x-model="step.column" class="text-center border rounded-md w-[50px] mx-auto" />
                                 </div>
                             </template>
                             <template x-if="step.type == 'click'">
                                 <div class="space-y-1">
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Element Lookup Attribute</small>
-                                        <small class="col-span-3"
-                                            x-text="config.elementLookups[step.selector_type].human_type"></small>
+                                        <small class="col-span-3" x-text="config.elementLookups[step.selector_type].human_type"></small>
                                     </div>
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Element Attribute Value</small>
@@ -159,29 +135,23 @@
                                 <div class="space-y-1">
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Field Type</small>
-                                        <small class="col-span-3"
-                                            x-text="config.fieldTypes[step.field_type_id].human_type"></small>
+                                        <small class="col-span-3" x-text="config.fieldTypes[step.field_type_id].human_type"></small>
                                     </div>
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Field Value</small>
                                         <small class="col-span-3" x-text="step.field_value"></small>
                                         <div class="flex gap-x-2 items-center mx-auto">
-                                            <div class="relative cursor-pointer flex gap-x-2"
-                                                @click="step.dynamic = !step.dynamic">
+                                            <div class="relative cursor-pointer flex gap-x-2" @click="step.dynamic = !step.dynamic">
                                                 <input type="checkbox" class="sr-only" :checked="step.dynamic" />
-                                                <div class="block w-8 h-4 rounded-full bg-green-600"
-                                                    :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
-                                                <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]"
-                                                    :class="step.dynamic ? 'translate-x-full' : ''"></div>
+                                                <div class="block w-8 h-4 rounded-full bg-green-600" :class="step.dynamic ? 'bg-green-600' : 'bg-red-500'"></div>
+                                                <div class="bg-white absolute left-1 top-0.5 w-3 h-3 rounded-full transition duration-[650ms]" :class="step.dynamic ? 'translate-x-full' : ''"></div>
                                             </div>
                                         </div>
-                                        <input :disabled="!step.dynamic" x-model="step.column"
-                                            class="border rounded-md w-[50px] mx-auto text-center" />
+                                        <input :disabled="!step.dynamic" x-model="step.column" class="border rounded-md w-[50px] mx-auto text-center" />
                                     </div>
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Element Lookup Attribute</small>
-                                        <small class="col-span-3"
-                                            x-text="config.elementLookups[step.selector_type].human_type"></small>
+                                        <small class="col-span-3" x-text="config.elementLookups[step.selector_type].human_type"></small>
                                     </div>
                                     <div class="grid grid-cols-7 items-center gap-x-4 px-1">
                                         <small class="col-span-2">Element Attribute Value</small>
@@ -194,53 +164,56 @@
                 </template>
             </div>
         </div>
-        <div class="bg-slate-700 p-4 rounded-md shadow shadow-black text-white space-y-4">
-            <div class="flex items-center">
-                <small class="text-white w-[575px] flex items-center gap-x-2"><img src="./images/icons/desktop.svg" class="w-8 h-8" /># of threads (browsers to simulate)</small>
-                <input type="number" x-model.number="runSettings.threads" class="cursor-pointer border rounded-md px-1 w-[55px] text-center" @click="$el.select()" />
+        <div class="bg-slate-700 p-4 rounded-md shadow shadow-black text-white grid grid-cols-2">
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <small class="text-white w-[575px] flex items-center gap-x-2"><img src="./images/icons/desktop.svg" class="w-8 h-8" /># of threads (browsers to simulate)</small>
+                    <input type="number" x-model.number="runSettings.threads" class="cursor-pointer border rounded-md px-1 w-[55px] text-center" @click="$el.select()" />
+                </div>
+                <div class="flex items-center">
+                    <small class="text-white w-[575px] flex items-center gap-x-2"><img src="./images/icons/table.svg" class="w-8 h-8" />Starting from Spreadsheet row</small>
+                    <input type="number" x-model.number="runSettings.row" @click="$el.select()" class="cursor-pointer border rounded-md px-1 w-[55px] text-center" />
+                </div>
+                <div class="flex items-center">
+                    <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/clock.svg" class="w-8 h-8" />Seconds pause between each browser spinning up</small>
+                    <input type="number" x-model.number="runSettings.threadBreak" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
+                </div>
+                <div class="flex items-center">
+                    <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/servers.svg" class="w-8 h-8" /># of chunks to batch the browsers between</small>
+                    <input type="number" x-model.number="runSettings.chunks" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
+                </div>
+                <div class="flex items-center">
+                    <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/clock.svg" class="w-8 h-8" />Seconds pause between chunks when multiple chunks are used</small>
+                    <input type="number" x-model.number="runSettings.chunkBreak" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
+                </div>
+                <div class="flex items-center mt-12">
+                    <small class="text-white inline-block w-[575px]">If chunking, a chunk pause between takes place from when all of the prior chunks browsers have shutdown, rather than on the prior chunks last browser spinning up</small>
+                    <div class="flex gap-x-2 items-center">
+                        <div class="relative cursor-pointer flex gap-x-2" @click="runSettings.waitForChunkToFinish = !runSettings.waitForChunkToFinish">
+                            <input type="checkbox" class="sr-only" :checked="runSettings.waitForChunkToFinish" />
+                            <div class="block w-16 h-7 rounded-full bg-green-600" :class="runSettings.waitForChunkToFinish ? 'bg-green-600' : 'bg-red-500'"></div>
+                            <div class="bg-white absolute left-3 top-1 w-5 h-5 rounded-full transition duration-[650ms]" :class="runSettings.waitForChunkToFinish ? 'translate-x-full' : ''"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-16">
+                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="runLoad">
+                        <span>Run Load Test</span><img src="./images/icons/rocket.svg" class="w-8 h-8" />
+                    </button>
+                </div>
             </div>
-            <div class="flex items-center">
-                <small class="text-white w-[575px] flex items-center gap-x-2"><img src="./images/icons/table.svg" class="w-8 h-8" />Starting from Spreadsheet row</small>
-                <input type="number" x-model.number="runSettings.row" @click="$el.select()" class="cursor-pointer border rounded-md px-1 w-[55px] text-center" />
-            </div>
-            <div class="flex items-center">
-                <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/clock.svg" class="w-8 h-8" />Seconds pause between each browser spinning up</small>
-                <input type="number" x-model.number="runSettings.threadBreak" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
-            </div>
-
-            <div class="flex items-center">
-                <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/servers.svg" class="w-8 h-8" /># of chunks to batch the browsers between</small>
-                <input type="number" x-model.number="runSettings.chunks" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
-            </div>
-
-            <div class="flex items-center">
-                <small class="text-white flex items-center gap-x-2 w-[575px]"><img src="./images/icons/clock.svg" class="w-8 h-8" />Seconds pause between chunks when multiple chunks are used</small>
-                <input type="number" x-model.number="runSettings.chunkBreak" @click="$el.select()" class="border rounded-md px-1 w-[55px] text-center cursor-pointer" />
-            </div>
-
-            <div class="flex items-center mt-12">
-                <small class="text-white inline-block w-[575px]">If chunking, a chunk pause between takes place from when all of the prior chunks browsers have shutdown, rather than on the prior chunks last browser spinning up</small>
-                <div class="flex gap-x-2 items-center">
-                    <div class="relative cursor-pointer flex gap-x-2" @click="runSettings.waitForChunkToFinish = !runSettings.waitForChunkToFinish">
-                        <input type="checkbox" class="sr-only" :checked="runSettings.waitForChunkToFinish" />
-                        <div class="block w-16 h-7 rounded-full bg-green-600" :class="runSettings.waitForChunkToFinish ? 'bg-green-600' : 'bg-red-500'"></div>
-                        <div class="bg-white absolute left-3 top-1 w-5 h-5 rounded-full transition duration-[650ms]" :class="runSettings.waitForChunkToFinish ? 'translate-x-full' : ''"></div>
+            <div>
+                <div x-cloak x-show="polling.state" x-transition>
+                    <img src="./images/spinner.svg" class="w-8 h-8 animate-spin mx-auto" />
+                    <div class="mt-8">
+                        <p class="underline underline-offset-2 decoration-2">Local System Stats</p>
+                        <ul>
+                            <li>CPU: <span x-text="polling.data.cpu_prcnt + ' %'"></span></li>
+                            <li>System Ram: <span x-text="polling.data.sys_ram + ' %'"></span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
-        </div>
-        <div x-cloak x-show="polling.state" x-transition>
-            <ul>
-                <li>CPU: <span x-text="polling.data.cpu_prcnt + ' %'"></span></li>
-                <li>System Ram: <span x-text="polling.data.sys_ram + ' %'"></span></li>
-            </ul>
-        </div>
-        <div>
-            <button
-                class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
-                @click="runLoad">
-                <span>Run Load Test</span><img src="./images/icons/rocket.svg" class="w-8 h-8" />
-            </button>
         </div>
     </div>
     <script>
@@ -282,9 +255,7 @@
             },
             async retrieveTest() {
                 const params = new URLSearchParams({ id: this.testId });
-                const response = await fetch(
-                    "http://localhost:5000/tests/" + this.testId,
-                );
+                const response = await fetch("http://localhost:5000/tests/" + this.testId);
                 const json = await response.json();
                 this.test = json.data.test;
                 for (const x of this.test.steps) {
@@ -295,23 +266,17 @@
                 }
             },
             async retrieveSheets() {
-                const response = await fetch(
-                    "http://localhost:5000/sheets/list",
-                );
+                const response = await fetch("http://localhost:5000/sheets/list");
                 const json = await response.json();
                 this.existingSheets = json.data.sheets;
             },
             async retrieveConfig() {
-                const response = await fetch(
-                    "http://localhost:5000/configure/list",
-                );
+                const response = await fetch("http://localhost:5000/configure/list");
                 const json = await response.json();
                 this.config = json.data;
             },
             async retrieveSheet(id) {
-                const response = await fetch(
-                    "http://localhost:5000/sheets/list/" + id,
-                );
+                const response = await fetch("http://localhost:5000/sheets/list/" + id);
                 const json = await response.json();
                 this.sheet.head = json.data.sheet.head;
                 this.sheet.columns = json.data.sheet.columns;
@@ -321,9 +286,7 @@
             async uploadSheet(files) {
                 const formData = new FormData();
                 formData.append("sheet", files[0]);
-                const response = await fetch(
-                    "http://localhost:5000/sheets/upload",
-                    {
+                const response = await fetch("http://localhost:5000/sheets/upload", {
                         method: "POST",
                         body: formData,
                         headers: { accept: "application/json" },
@@ -338,10 +301,9 @@
                 this.retrieveSheet(json.data.id);
             },
             async trashSheet(id) {
-                const response = await fetch(
-                    "http://localhost:5000/sheets/" + id,
-                    { method: "DELETE" },
-                );
+                const response = await fetch("http://localhost:5000/sheets/" + id, {
+                    method: "DELETE"
+                });
                 if (!response.ok) {
                     return;
                 }
@@ -349,9 +311,7 @@
             },
             async runLoad(id) {
                 this.polling.state = true
-                const response = await fetch(
-                    "http://localhost:5000/configure/load/" + this.testId,
-                    {
+                const response = await fetch("http://localhost:5000/configure/load/" + this.testId, {
                         method: "POST",
                         body: JSON.stringify({
                             testId: this.testId,
