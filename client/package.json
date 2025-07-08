@@ -10,6 +10,7 @@
     "tailwind": "npx @tailwindcss/cli -i ./src/style.css -o ./src/output.css --watch"
   },
   "devDependencies": {
+    "prettier": "3.6.2",
     "vite": "^7.0.0"
   },
   "dependencies": {

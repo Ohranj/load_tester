@@ -7,6 +7,7 @@ import time
 from flaskr.db import get_db
 from flaskr.sheet import read_sheet
 from threading import Lock
+import math
 
 
 data_lock = Lock()
@@ -92,17 +93,25 @@ def run_load(id):
 
     thread_list = list()
 
-    print(body['settings'])
+    chunking = math.floor(body['settings']['threads'] / body['settings']['chunks'])
+    row = 0
 
-    for i in range(0, body['settings']['threads']):
-        t = threading.Thread(name='Test {}'.format(i), target=temp, args=(i, computedSteps[i]))
-        t.start()
-        time.sleep(body['settings']['threadBreak'])
-        print('Test ' + str(i + 1) + ': started!')
-        thread_list.append(t)
+    for x in range(0, body['settings']['chunks']):
+        for i in range(row, row + chunking):
+            t = threading.Thread(name='Test {}'.format(i), target=temp, args=(i, computedSteps[i]))
+            t.start()
+            time.sleep(body['settings']['threadBreak'])
+            print('Test ' + str(i + 1) + ': started!')
+            thread_list.append(t)
+        row += chunking
+        if body['settings']['waitForChunkToFinish'] == True:
+            for thread in thread_list:
+                thread.join()
+        time.sleep(body['settings']['chunkBreak'])
 
-    for thread in thread_list:
-        thread.join()
+    if body['settings']['waitForChunkToFinish'] == False:
+        for thread in thread_list:
+            thread.join()
 
     jsonData = { 'success': True, 'message': 'Test completed', 'data': [], 'errors': [] }
     status = 200

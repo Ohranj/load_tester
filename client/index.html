@@ -1,421 +1,784 @@
 <!doctype html>
 <html lang="en" class="h-full">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="/src/output.css" rel="stylesheet" />
+        <script src="./src/app.js" type="module" defer></script>
+        <title>Vite App</title>
+    </head>
 
-<head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="/src/output.css" rel="stylesheet">
-    <script src="./src/app.js" type="module" defer></script>
-    <title>Vite App</title>
-</head>
-
-<body class="min-h-screen h-screen bg-slate-200">
-    <div x-data="app" class="px-4 py-12 h-full space-y-20">
-        <div>
-            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/beaker.svg" class="w-8 h-8 inline-block" /></span>Stored Tests</h1>
-            <div class="rounded-md shadow shadow-black">
-                <div class="grid grid-cols-7 bg-slate-700 text-white gap-x-1 rounded-t-md p-1 font-semibold">
-                    <small class="col-span-2">Name</small>
-                    <small class="col-span-2">Start From</small>
-                    <small class="col-span-2">Created</small>
-                    <small></small>
-                </div>
-                <template x-for="x in tests.list">
-                    <div class="grid grid-cols-7 gap-x-1 px-1 py-0.5 odd:bg-slate-300 hover:bg-slate-300 last:rounded-b-md">
-                        <small class="col-span-2" x-text="x.name"></small>
-                        <small class="col-span-2" x-text="x.start"></small>
-                        <small class="col-span-2" x-text="x.created"></small>
-                        <small class="relative" x-data="{dropdown: false}">
-                            <button class="cursor-pointer w-[75px] font-semibold rounded-md bg-orange-500 hover:bg-orange-600 text-white px-2 py-0.5" @click="dropdown = true" @click.away="dropdown = false">Action</button>
-                            <div x-cloak x-show="dropdown" x-collapse class="absolute z-1 w-full right-4">
-                                <div class="bg-white border rounded py-1 shadow shadow-black space-y-1 text-xs whitespace-nowrap text-black font-semibold">
-                                    <a target="_blank" :href='"/test?id=" + x.id' class="hover:bg-slate-500 hover:text-white px-2 py-1 w-full block">Configure Load Test</a>
-                                    <button class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1" @click="builder.steps=x.steps;onTestRunClicked()"><x-svg.trash class="w-4 h-4" fill="none" stroke="currentColor" />Run Test</button>
-                                    <button class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1" @click="console.log(2)"><x-svg.trash class="w-4 h-4" fill="none" stroke="currentColor" />Export Test</button>
-                                    <hr class="border border-dashed border-slate-400">
-                                    <button class="w-full py-0.5 hover:bg-red-400 cursor-pointer hover:text-white hover:ring-red-400 px-2 text-left flex items-center" @click="console.log(2)">Delete</button>
-                                </div>
-                            </div>
-                        </small>
-                    </div>
-                </template>
-            </div>
-            <div class="flex items-center justify-between mt-1">
-                <small>Showing page <span x-text="tests.currentPage"></span> of <span x-text="tests.totalPages"></span></small>
-                <div class="text-sm font-semibold">
-                    <button class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer" @click="tests.currentPage -= 1; retrieveTests()" :disabled="tests.currentPage <= 1">Previous</button>
-                    <button class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer" @click="tests.currentPage += 1;retrieveTests()" :disabled="tests.currentPage >= tests.totalPages">Next</button>
-                </div>
-            </div>
-        </div>
-        <div class="w-full xl:w-[75%] relative">
-            <h1 class="underline underline-offset-2 decoration-2 font-semibold text-2xl"><span><img src="./images/icons/rocket.svg" class="w-8 h-8 inline-block" /></span>Configure Test</h1>
-            <small>When laying out the test steps, do so with a single user journey. When later running the load test you will have the option to read values from a spreadsheet for threading.</small>
+    <body class="min-h-screen h-screen bg-slate-200">
+        <div x-data="app" class="px-4 py-12 h-full space-y-20">
             <div>
-                <h2 class="font-semibold mt-4">Choose an action</h2>
-                <div data-drop-target="true" class="flex gap-4 items-start flex-wrap">
-                    <template x-for="action in builder.actions">
-                        <button :data-action="JSON.stringify(action)" :id="action.id" draggable="true" class="border p-4 cursor-pointer rounded-md min-w-[215px] hover:bg-blue-500 hover:text-white shadow shadow-black" @dragstart="builder.draggingElem=$el" x-text="action.human_type"></button>
-                    </template>
-                </div>
-                <div class="p-4 bg-slate-700 rounded-md flex flex-wrap gap-y-6 items-start mt-4">
-                    <template x-for="(step, index) in builder.steps">
-                        <div class="flex items-center relative">
-                            <div class="relative w-[215px] h-[58px] flex items-center justify-center bg-white border p-4 rounded-md text-center hover:bg-slate-400 text-xs cursor-pointer" @click="sliders.editItem.item=step;sliders.editItem.index=index;sliders.editItem.show=true">
-                                <template x-if="step.type == 'visit'">
-                                    <img src="./images/icons/link.svg" class="w-5 h-5 absolute left-1 top-1" />
-                                </template>
-                                <template x-if="step.type == 'sleep'">
-                                    <img src="./images/icons/pause.svg" class="w-5 h-5 absolute left-1 top-1" />
-                                </template>
-                                <template x-if="step.type == 'screenshot'">
-                                    <img src="./images/icons/camera.svg" class="w-5 h-5 absolute left-1 top-1" />
-                                </template>
-                                <template x-if="step.type == 'click'">
-                                    <img src="./images/icons/click.svg" class="w-5 h-5 absolute left-1 top-1" />
-                                </template>
-                                <template x-if="step.type == 'input'">
-                                    <img src="./images/icons/pencil.svg" class="w-5 h-5 absolute left-1 top-1" />
-                                </template>
-                                <span class="overflow-hidden text-ellipsis whitespace-nowrap" x-text="step.displayTitle"></span></div>
-                            <img src="./images/icons/arrow-right.svg" class="w-8 h-8" droppable="true" @dragover.prevent="styleDropBetween(event)" @drop.prevent="handleDrop(event, index)" />
+                <h1
+                    class="underline underline-offset-2 decoration-2 font-semibold text-2xl"
+                >
+                    <span
+                        ><img
+                            src="./images/icons/beaker.svg"
+                            class="w-8 h-8 inline-block" /></span
+                    >Stored Tests
+                </h1>
+                <div class="rounded-md shadow shadow-black">
+                    <div
+                        class="grid grid-cols-7 bg-slate-700 text-white gap-x-1 rounded-t-md p-1 font-semibold"
+                    >
+                        <small class="col-span-2">Name</small>
+                        <small class="col-span-2">Start From</small>
+                        <small class="col-span-2">Created</small>
+                        <small></small>
+                    </div>
+                    <template x-for="x in tests.list">
+                        <div
+                            class="grid grid-cols-7 gap-x-1 px-1 py-0.5 odd:bg-slate-300 hover:bg-slate-300 last:rounded-b-md"
+                        >
+                            <small class="col-span-2" x-text="x.name"></small>
+                            <small class="col-span-2" x-text="x.start"></small>
+                            <small
+                                class="col-span-2"
+                                x-text="x.created"
+                            ></small>
+                            <small class="relative" x-data="{dropdown: false}">
+                                <button
+                                    class="cursor-pointer w-[75px] font-semibold rounded-md bg-orange-500 hover:bg-orange-600 text-white px-2 py-0.5"
+                                    @click="dropdown = true"
+                                    @click.away="dropdown = false"
+                                >
+                                    Action
+                                </button>
+                                <div
+                                    x-cloak
+                                    x-show="dropdown"
+                                    x-collapse
+                                    class="absolute z-1 w-full right-4"
+                                >
+                                    <div
+                                        class="bg-white border rounded py-1 shadow shadow-black space-y-1 text-xs whitespace-nowrap text-black font-semibold"
+                                    >
+                                        <a
+                                            target="_blank"
+                                            :href='"/test?id=" + x.id'
+                                            class="hover:bg-slate-500 hover:text-white px-2 py-1 w-full block"
+                                            >Configure Load Test</a
+                                        >
+                                        <button
+                                            class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1"
+                                            @click="builder.steps=x.steps;onTestRunClicked()"
+                                        >
+                                            <x-svg.trash
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            />Run Test
+                                        </button>
+                                        <button
+                                            class="w-full py-0.5 hover:bg-slate-500 cursor-pointer hover:text-white hover:ring-slate-500 px-2 text-left flex items-center gap-x-1"
+                                            @click="console.log(2)"
+                                        >
+                                            <x-svg.trash
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                            />Export Test
+                                        </button>
+                                        <hr
+                                            class="border border-dashed border-slate-400"
+                                        />
+                                        <button
+                                            class="w-full py-0.5 hover:bg-red-400 cursor-pointer hover:text-white hover:ring-red-400 px-2 text-left flex items-center"
+                                            @click="console.log(2)"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </small>
                         </div>
                     </template>
-                    <div class="flex items-center">
-                        <div class="w-[215px] border border-dashed h-[58px] grid place-content-center rounded-md hover:bg-slate-400 bg-slate-300" data-drop-target="true" @dragover.prevent="handleDrop(event)" @drop.prevent="handleDrop(event)" @dragenter="$el.classList.add('shadow')" @dragleave="$el.classList.remove('shadow')"><img src="./images/icons/plus-circle.svg" class="w-8 h-8" /></div>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                    <small
+                        >Showing page
+                        <span x-text="tests.currentPage"></span> of
+                        <span x-text="tests.totalPages"></span
+                    ></small>
+                    <div class="text-sm font-semibold">
+                        <button
+                            class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer"
+                            @click="tests.currentPage -= 1; retrieveTests()"
+                            :disabled="tests.currentPage <= 1"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            class="border rounded-md w-[75px] py-0.5 px-2 hover:bg-slate-300 cursor-pointer"
+                            @click="tests.currentPage += 1;retrieveTests()"
+                            :disabled="tests.currentPage >= tests.totalPages"
+                        >
+                            Next
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end mt-4">
-                <div class="flex items-center gap-x-2">
-                    <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="onTestRunClicked"><span>Test Run</span><img src="./images/icons/rocket.svg" class="w-8 h-8" /></button>
-                    <button class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border" @click="modals.store.value=null;modals.store.show=true"><span>Store Test</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+            <div class="w-full xl:w-[75%] relative">
+                <h1
+                    class="underline underline-offset-2 decoration-2 font-semibold text-2xl"
+                >
+                    <span
+                        ><img
+                            src="./images/icons/rocket.svg"
+                            class="w-8 h-8 inline-block" /></span
+                    >Configure Test
+                </h1>
+                <small
+                    >When laying out the test steps, do so with a single user
+                    journey. When later running the load test you will have the
+                    option to read values from a spreadsheet for
+                    threading.</small
+                >
+                <div>
+                    <h2 class="font-semibold mt-4">Choose an action</h2>
+                    <div
+                        data-drop-target="true"
+                        class="flex gap-4 items-start flex-wrap"
+                    >
+                        <template x-for="action in builder.actions">
+                            <button
+                                :data-action="JSON.stringify(action)"
+                                :id="action.id"
+                                draggable="true"
+                                class="border p-4 cursor-pointer rounded-md min-w-[215px] hover:bg-blue-500 hover:text-white shadow shadow-black"
+                                @dragstart="builder.draggingElem=$el"
+                                x-text="action.human_type"
+                            ></button>
+                        </template>
+                    </div>
+                    <div
+                        class="p-4 bg-slate-700 rounded-md flex flex-wrap gap-y-6 items-start mt-4"
+                    >
+                        <template x-for="(step, index) in builder.steps">
+                            <div class="flex items-center relative">
+                                <div
+                                    class="relative w-[215px] h-[58px] flex items-center justify-center bg-white border p-4 rounded-md text-center hover:bg-slate-400 text-xs cursor-pointer"
+                                    @click="sliders.editItem.item=step;sliders.editItem.index=index;sliders.editItem.show=true"
+                                >
+                                    <template x-if="step.type == 'visit'">
+                                        <img
+                                            src="./images/icons/link.svg"
+                                            class="w-5 h-5 absolute left-1 top-1"
+                                        />
+                                    </template>
+                                    <template x-if="step.type == 'sleep'">
+                                        <img
+                                            src="./images/icons/pause.svg"
+                                            class="w-5 h-5 absolute left-1 top-1"
+                                        />
+                                    </template>
+                                    <template x-if="step.type == 'screenshot'">
+                                        <img
+                                            src="./images/icons/camera.svg"
+                                            class="w-5 h-5 absolute left-1 top-1"
+                                        />
+                                    </template>
+                                    <template x-if="step.type == 'click'">
+                                        <img
+                                            src="./images/icons/click.svg"
+                                            class="w-5 h-5 absolute left-1 top-1"
+                                        />
+                                    </template>
+                                    <template x-if="step.type == 'input'">
+                                        <img
+                                            src="./images/icons/pencil.svg"
+                                            class="w-5 h-5 absolute left-1 top-1"
+                                        />
+                                    </template>
+                                    <span
+                                        class="overflow-hidden text-ellipsis whitespace-nowrap"
+                                        x-text="step.displayTitle"
+                                    ></span>
+                                </div>
+                                <img
+                                    src="./images/icons/arrow-right.svg"
+                                    class="w-8 h-8"
+                                    droppable="true"
+                                    @dragover.prevent="styleDropBetween(event)"
+                                    @drop.prevent="handleDrop(event, index)"
+                                />
+                            </div>
+                        </template>
+                        <div class="flex items-center">
+                            <div
+                                class="w-[215px] border border-dashed h-[58px] grid place-content-center rounded-md hover:bg-slate-400 bg-slate-300"
+                                data-drop-target="true"
+                                @dragover.prevent="handleDrop(event)"
+                                @drop.prevent="handleDrop(event)"
+                                @dragenter="$el.classList.add('shadow')"
+                                @dragleave="$el.classList.remove('shadow')"
+                            >
+                                <img
+                                    src="./images/icons/plus-circle.svg"
+                                    class="w-8 h-8"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-4">
+                    <div class="flex items-center gap-x-2">
+                        <button
+                            class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border"
+                            @click="onTestRunClicked"
+                        >
+                            <span>Test Run</span
+                            ><img
+                                src="./images/icons/rocket.svg"
+                                class="w-8 h-8"
+                            />
+                        </button>
+                        <button
+                            class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border"
+                            @click="modals.store.value=null;modals.store.show=true"
+                        >
+                            <span>Store Test</span
+                            ><img
+                                src="./images/icons/database.svg"
+                                class="w-8 h-8"
+                            />
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div x-cloak>
-            <div x-show="sliders.editItem.show" @click="sliders.editItem.show=false" class="fixed inset-0 backdrop-blur-sm bg-[#00000075]"></div>
-            <div class="fixed transition duration-500 right-0 top-0 transform w-full max-w-2xl h-screen bg-slate-800 overflow-hidden" :class="{'translate-x-full': !sliders.editItem.show}">
-                <div class="h-[75px] flex items-center justify-between px-2 border-b border-slate-400">
-                    <h1 class="text-xl font-semibold text-white">Configure Step</h1>
-                    <button class="py-0.5 px-2 border min-w-[105px] hover:bg-slate-200 rounded-md bg-white font-semibold cursor-pointer" @click="sliders.editItem.show=false">Confirm</button>
-                </div>
-                <template x-if="sliders.editItem.show">
-                    <div class="p-4 text-white">
-                        <h1 class="text-lg font-semibold">Step <span x-text="sliders.editItem.item.stepNumber"></span> - <span x-text="sliders.editItem.item.human_type"></span></h1>
-                        <div class="mt-6">
-                            <template x-if="sliders.editItem.item.type == 'visit'">
-                                <div class="flex flex-col text-sm">
-                                    <label>Full URL to visit</label>
-                                    <input spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" @input="sliders.editItem.item.displayTitle = $el.value" />
-                                </div>
-                            </template>
-                            <template x-if="sliders.editItem.item.type == 'sleep'">
-                                <div class="space-y-6">
-                                    <small class="block">You do not need to use a sleep action to wait for content to be retrieved. This has been set by default. Additionally, a wait of up to 3 seconds has been set to allow for elements to be painted. Sleep actions should be intended as a last result or as a required interval</small>
+            <div x-cloak>
+                <div
+                    x-show="sliders.editItem.show"
+                    @click="sliders.editItem.show=false"
+                    class="fixed inset-0 backdrop-blur-sm bg-[#00000075]"
+                ></div>
+                <div
+                    class="fixed transition duration-500 right-0 top-0 transform w-full max-w-2xl h-screen bg-slate-800 overflow-hidden"
+                    :class="{'translate-x-full': !sliders.editItem.show}"
+                >
+                    <div
+                        class="h-[75px] flex items-center justify-between px-2 border-b border-slate-400"
+                    >
+                        <h1 class="text-xl font-semibold text-white">
+                            Configure Step
+                        </h1>
+                        <button
+                            class="py-0.5 px-2 border min-w-[105px] hover:bg-slate-200 rounded-md bg-white font-semibold cursor-pointer"
+                            @click="sliders.editItem.show=false"
+                        >
+                            Confirm
+                        </button>
+                    </div>
+                    <template x-if="sliders.editItem.show">
+                        <div class="p-4 text-white">
+                            <h1 class="text-lg font-semibold">
+                                Step
+                                <span
+                                    x-text="sliders.editItem.item.stepNumber"
+                                ></span>
+                                -
+                                <span
+                                    x-text="sliders.editItem.item.human_type"
+                                ></span>
+                            </h1>
+                            <div class="mt-6">
+                                <template
+                                    x-if="sliders.editItem.item.type == 'visit'"
+                                >
                                     <div class="flex flex-col text-sm">
-                                        <label>Duration (secs)</label>
-                                        <input spellcheck="false" class="border cursor-pointer text-center rounded-md self-start px-1 py-0.5 w-[75px]" @click="$el.select()" x-model.number="sliders.editItem.item.value" @input="sliders.editItem.item.displayTitle = `Sleep: ${$el.value}s`" />
+                                        <label>Full URL to visit</label>
+                                        <input
+                                            spellcheck="false"
+                                            class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3"
+                                            x-model="sliders.editItem.item.value"
+                                            @click="$el.select()"
+                                            @input="sliders.editItem.item.displayTitle = $el.value"
+                                        />
                                     </div>
-                                </div>
-                            </template>
-                            <template x-if="sliders.editItem.item.type == 'screenshot'">
-                                <div class="space-y-6">
-                                    <small class="block">For test runs screenshots are not persisted. They will be overwrote on completion of your next test run.</small>
-                                    <div class="flex flex-col text-sm">
-                                        <label>Screenshot name</label>
-                                        <input placeholder="..." spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-1/3" @click="$el.select()" x-model.number="sliders.editItem.item.screenshot_name" @input="sliders.editItem.item.displayTitle = `Screenshot: ${$el.value}`" />
-                                    </div>
-                                </div>
-                            </template>
-                            <template x-if="sliders.editItem.item.type == 'click'">
-                                <div class="space-y-6">
-                                    <div class="flex flex-col text-sm">
-                                        <label>Lookup by attribute (First match on page used)</label>
-                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700" x-model.number="sliders.editItem.item.selector_type">
-                                            <template x-for="x in builder.elementLookups">
-                                                <option :selected="x.id == sliders.editItem.item.selector_type" :value.number="x.id" x-text="x.human_type"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <div class="flex flex-col text-sm">
-                                        <label>Lookup element to find</label>
-                                        <input placeholder="input[type='submit']" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" />
-                                    </div>
-                                </div>
-                            </template>
-                            <template x-if="sliders.editItem.item.type == 'input'">
-                                <div class="space-y-6">
-                                    <div class="flex flex-col text-sm">
-                                        <label>Lookup by attribute (First match on page used)</label>
-                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700"
-                                            x-model.number="sliders.editItem.item.selector_type">
-                                            <template x-for="x in builder.elementLookups">
-                                                <option :selected="x.id == sliders.editItem.item.selector_type" :value.number="x.id" x-text="x.human_type"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <div class="flex flex-col text-sm">
-                                        <label>Lookup element to find</label>
-                                        <input placeholder="input[type='email']" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.value" @click="$el.select()" />
-                                    </div>
-                                    <div class="flex flex-col text-sm">
-                                        <label>Form field type</label>
-                                        <select class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700" x-model.number="sliders.editItem.item.field_type_id" @change="sliders.editItem.item.field_value = null">
-                                            <template x-for="x in builder.fieldTypes">
-                                                <option :selected="x.id == sliders.editItem.item.field_type_id" :value.number="x.id" x-text="x.human_type"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <template x-if="sliders.editItem.item.field_type_id == 0">
+                                </template>
+                                <template
+                                    x-if="sliders.editItem.item.type == 'sleep'"
+                                >
+                                    <div class="space-y-6">
+                                        <small class="block"
+                                            >You do not need to use a sleep
+                                            action to wait for content to be
+                                            retrieved. This has been set by
+                                            default. Additionally, a wait of up
+                                            to 3 seconds has been set to allow
+                                            for elements to be painted. Sleep
+                                            actions should be intended as a last
+                                            result or as a required
+                                            interval</small
+                                        >
                                         <div class="flex flex-col text-sm">
-                                            <label>Text value for input field</label>
-                                            <input placeholder="..." spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.field_value" @click="$el.select()" />
+                                            <label>Duration (secs)</label>
+                                            <input
+                                                spellcheck="false"
+                                                class="border cursor-pointer text-center rounded-md self-start px-1 py-0.5 w-[75px]"
+                                                @click="$el.select()"
+                                                x-model.number="sliders.editItem.item.value"
+                                                @input="sliders.editItem.item.displayTitle = `Sleep: ${$el.value}s`"
+                                            />
                                         </div>
-                                    </template>
-                                    <template x-if="sliders.editItem.item.field_type_id == 1">
+                                    </div>
+                                </template>
+                                <template
+                                    x-if="sliders.editItem.item.type == 'screenshot'"
+                                >
+                                    <div class="space-y-6">
+                                        <small class="block"
+                                            >For test runs screenshots are not
+                                            persisted. They will be overwrote on
+                                            completion of your next test
+                                            run.</small
+                                        >
                                         <div class="flex flex-col text-sm">
-                                            <label>Numeric value for input field</label>
-                                            <input placeholder="..." type="number" spellcheck="false" class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-[75px]" x-model.number="sliders.editItem.item.field_value" @click="$el.select()" />
+                                            <label>Screenshot name</label>
+                                            <input
+                                                placeholder="..."
+                                                spellcheck="false"
+                                                class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-1/3"
+                                                @click="$el.select()"
+                                                x-model.number="sliders.editItem.item.screenshot_name"
+                                                @input="sliders.editItem.item.displayTitle = `Screenshot: ${$el.value}`"
+                                            />
                                         </div>
-                                    </template>
-                                    <template x-if="sliders.editItem.item.field_type_id == 2">
+                                    </div>
+                                </template>
+                                <template
+                                    x-if="sliders.editItem.item.type == 'click'"
+                                >
+                                    <div class="space-y-6">
                                         <div class="flex flex-col text-sm">
-                                            <label>Matching text value of intended option</label>
-                                            <input placeholder="..." class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3" x-model="sliders.editItem.item.field_value" @click="$el.select()" />
+                                            <label
+                                                >Lookup by attribute (First
+                                                match on page used)</label
+                                            >
+                                            <select
+                                                class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700"
+                                                x-model.number="sliders.editItem.item.selector_type"
+                                            >
+                                                <template
+                                                    x-for="x in builder.elementLookups"
+                                                >
+                                                    <option
+                                                        :selected="x.id == sliders.editItem.item.selector_type"
+                                                        :value.number="x.id"
+                                                        x-text="x.human_type"
+                                                    ></option>
+                                                </template>
+                                            </select>
                                         </div>
-                                    </template>
-                                </div>
-                            </template>
-                            <button class="mt-12 py-0.5 px-2 border min-w-[105px] rounded-md font-semibold cursor-pointer" :class="builder.steps.length <= 1 ? 'bg-slate-400 hover:bg-slate-400' : 'bg-red-500 hover:bg-red-600 border-red-300'" :disabled="builder.steps.length <= 1" @click="builder.steps.splice(sliders.editItem.item.stepNumber - 1, 1);resetStepNumbers();sliders.editItem.show=false;">Trash Step</button>
+                                        <div class="flex flex-col text-sm">
+                                            <label
+                                                >Lookup element to find</label
+                                            >
+                                            <input
+                                                placeholder="input[type='submit']"
+                                                spellcheck="false"
+                                                class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3"
+                                                x-model="sliders.editItem.item.value"
+                                                @click="$el.select()"
+                                            />
+                                        </div>
+                                    </div>
+                                </template>
+                                <template
+                                    x-if="sliders.editItem.item.type == 'input'"
+                                >
+                                    <div class="space-y-6">
+                                        <div class="flex flex-col text-sm">
+                                            <label
+                                                >Lookup by attribute (First
+                                                match on page used)</label
+                                            >
+                                            <select
+                                                class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700"
+                                                x-model.number="sliders.editItem.item.selector_type"
+                                            >
+                                                <template
+                                                    x-for="x in builder.elementLookups"
+                                                >
+                                                    <option
+                                                        :selected="x.id == sliders.editItem.item.selector_type"
+                                                        :value.number="x.id"
+                                                        x-text="x.human_type"
+                                                    ></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div class="flex flex-col text-sm">
+                                            <label
+                                                >Lookup element to find</label
+                                            >
+                                            <input
+                                                placeholder="input[type='email']"
+                                                spellcheck="false"
+                                                class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3"
+                                                x-model="sliders.editItem.item.value"
+                                                @click="$el.select()"
+                                            />
+                                        </div>
+                                        <div class="flex flex-col text-sm">
+                                            <label>Form field type</label>
+                                            <select
+                                                class="scheme-dark rounded-md border cursor-pointer self-start px-1 py-0.5 w-1/3 bg-slate-700"
+                                                x-model.number="sliders.editItem.item.field_type_id"
+                                                @change="sliders.editItem.item.field_value = null"
+                                            >
+                                                <template
+                                                    x-for="x in builder.fieldTypes"
+                                                >
+                                                    <option
+                                                        :selected="x.id == sliders.editItem.item.field_type_id"
+                                                        :value.number="x.id"
+                                                        x-text="x.human_type"
+                                                    ></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <template
+                                            x-if="sliders.editItem.item.field_type_id == 0"
+                                        >
+                                            <div class="flex flex-col text-sm">
+                                                <label
+                                                    >Text value for input
+                                                    field</label
+                                                >
+                                                <input
+                                                    placeholder="..."
+                                                    spellcheck="false"
+                                                    class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3"
+                                                    x-model="sliders.editItem.item.field_value"
+                                                    @click="$el.select()"
+                                                />
+                                            </div>
+                                        </template>
+                                        <template
+                                            x-if="sliders.editItem.item.field_type_id == 1"
+                                        >
+                                            <div class="flex flex-col text-sm">
+                                                <label
+                                                    >Numeric value for input
+                                                    field</label
+                                                >
+                                                <input
+                                                    placeholder="..."
+                                                    type="number"
+                                                    spellcheck="false"
+                                                    class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-[75px]"
+                                                    x-model.number="sliders.editItem.item.field_value"
+                                                    @click="$el.select()"
+                                                />
+                                            </div>
+                                        </template>
+                                        <template
+                                            x-if="sliders.editItem.item.field_type_id == 2"
+                                        >
+                                            <div class="flex flex-col text-sm">
+                                                <label
+                                                    >Matching text value of
+                                                    intended option</label
+                                                >
+                                                <input
+                                                    placeholder="..."
+                                                    class="border cursor-pointer rounded-md self-start px-1 py-0.5 w-2/3"
+                                                    x-model="sliders.editItem.item.field_value"
+                                                    @click="$el.select()"
+                                                />
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                <button
+                                    class="mt-12 py-0.5 px-2 border min-w-[105px] rounded-md font-semibold cursor-pointer"
+                                    :class="builder.steps.length <= 1 ? 'bg-slate-400 hover:bg-slate-400' : 'bg-red-500 hover:bg-red-600 border-red-300'"
+                                    :disabled="builder.steps.length <= 1"
+                                    @click="builder.steps.splice(sliders.editItem.item.stepNumber - 1, 1);resetStepNumbers();sliders.editItem.show=false;"
+                                >
+                                    Trash Step
+                                </button>
+                            </div>
                         </div>
+                    </template>
+                </div>
+            </div>
+            <div class="flex gap-4 pb-12">
+                <template x-for="x in builder.screenshots">
+                    <div
+                        class="rounded-md shadow shadow-black p-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]"
+                    >
+                        <img
+                            :src="'data:image/png;base64,' + x.encoding"
+                            class="w-[300px] h-auto rounded-md"
+                        />
+                        <small
+                            class="font-semibold"
+                            x-text="x.name || 'Unnamed'"
+                        ></small>
                     </div>
                 </template>
             </div>
-        </div>
-        <div class="flex gap-4 pb-12">
-            <template x-for="x in builder.screenshots">
-                <div class="rounded-md shadow shadow-black p-1 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap max-w-[300px]">
-                    <img :src="'data:image/png;base64,' + x.encoding" class="w-[300px] h-auto rounded-md" />
-                    <small class="font-semibold" x-text="x.name || 'Unnamed'"></small>
+            <div
+                x-cloak
+                x-show="toast.show"
+                x-transition
+                class="fixed right-4 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px] z-10"
+            >
+                <div class="flex items-center justify-between p-2">
+                    <h1 class="font-semibold" x-text="toast.title"></h1>
+                    <span
+                        :class="toast.success ? 'bg-green-500' : 'bg-red-500'"
+                        class="w-4 h-4 rounded-full"
+                    ></span>
                 </div>
-            </template>
-        </div>
-        <div x-cloak x-show="toast.show" x-transition class="fixed right-4 bottom-2 bg-slate-300 border shadow shadow-black rounded-md text-xs w-[275px] z-10">
-            <div class="flex items-center justify-between p-2">
-                <h1 class="font-semibold" x-text="toast.title"></h1>
-                <span :class="toast.success ? 'bg-green-500' : 'bg-red-500'" class="w-4 h-4 rounded-full"></span>
-            </div>
-            <hr>
-            <div class="p-2">
-                <p x-cloak x-show="!toast.success" x-text="toast.content"></p>
-                <img x-cloak x-show="toast.success" src="/gifs/thumbs-up-well-done.gif" class="w-[90px] h-auto rounded mx-auto" />
-            </div>
-        </div>
-        <div x-cloak x-show="modals.store.show" class="p-4 bg-[#00000090] z-1 absolute left-0 top-0 grid place-content-center w-full h-full">
-            <div x-show="modals.store.show" x-transition class="bg-white w-[500px] h-[200px] rounded-md flex flex-col">
-                <div class="p-2 flex items-center justify-between">
-                    <h1 class="font-semibold text-lg">Name of Test</h1>
-                    <button class="py-0.5 px-2 border shadow shadow-black min-w-[105px] hover:bg-red-600 rounded-md bg-red-500 text-white font-semibold cursor-pointer" @click="modals.store.show=false">Cancel</button>
-                </div>
-                <hr>
-                <div class="p-2 flex flex-col justify-evenly items-center grow">
-                    <input x-model="modals.store.value" class="rounded-md cursor-pointer px-1 py-0.5 border" @click="$el.select()"/>
-                    <button :disabled="!modals.store.value" class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border" @click="onConfirmStoreTest"><span>Confirm</span><img src="./images/icons/database.svg" class="w-8 h-8" /></button>
+                <hr />
+                <div class="p-2">
+                    <p
+                        x-cloak
+                        x-show="!toast.success"
+                        x-text="toast.content"
+                    ></p>
+                    <img
+                        x-cloak
+                        x-show="toast.success"
+                        src="/gifs/thumbs-up-well-done.gif"
+                        class="w-[90px] h-auto rounded mx-auto"
+                    />
                 </div>
             </div>
-
+            <div
+                x-cloak
+                x-show="modals.store.show"
+                class="p-4 bg-[#00000090] z-1 absolute left-0 top-0 grid place-content-center w-full h-full"
+            >
+                <div
+                    x-show="modals.store.show"
+                    x-transition
+                    class="bg-white w-[500px] h-[200px] rounded-md flex flex-col"
+                >
+                    <div class="p-2 flex items-center justify-between">
+                        <h1 class="font-semibold text-lg">Name of Test</h1>
+                        <button
+                            class="py-0.5 px-2 border shadow shadow-black min-w-[105px] hover:bg-red-600 rounded-md bg-red-500 text-white font-semibold cursor-pointer"
+                            @click="modals.store.show=false"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                    <hr />
+                    <div
+                        class="p-2 flex flex-col justify-evenly items-center grow"
+                    >
+                        <input
+                            x-model="modals.store.value"
+                            class="rounded-md cursor-pointer px-1 py-0.5 border"
+                            @click="$el.select()"
+                        />
+                        <button
+                            :disabled="!modals.store.value"
+                            class="bg-green-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-green-600 shadow shadow-black border"
+                            @click="onConfirmStoreTest"
+                        >
+                            <span>Confirm</span
+                            ><img
+                                src="./images/icons/database.svg"
+                                class="w-8 h-8"
+                            />
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <script>
-        const app = (e) => ({
-            toast: {
-                show: false,
-                success: true,
-                title: '',
-                content: ''
-            },
-            tests: {
-                list: [],
-                currentPage: 1,
-                totalPages: 1
-            },
-            builder: {
-                actions: null,
-                elementLookups: null,
-                fieldTypes: null,
-                draggingElem: null,
-                screenshots: [],
-                steps: [
-                    {
-                        stepNumber: 1,
+        <script>
+            const app = (e) => ({
+                toast: { show: false, success: true, title: "", content: "" },
+                tests: { list: [], currentPage: 1, totalPages: 1 },
+                builder: {
+                    actions: null,
+                    elementLookups: null,
+                    fieldTypes: null,
+                    draggingElem: null,
+                    screenshots: [],
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            selector_type: null,
+                            displayTitle: "https://www.example.com",
+                            value: "https://www.example.com",
+                            field_value: null,
+                            field_type_id: null,
+                            type: "visit",
+                            human_type: "Visit URL in Address Bar",
+                            id: 0,
+                            screenshot_name: null,
+                        },
+                    ],
+                },
+                sliders: { editItem: { show: false, item: null } },
+                modals: { store: { show: false, value: null } },
+                init() {
+                    this.retrieveTests();
+                    this.retrieveConfigVars();
+                    this.$watch("toast.show", (state) => {
+                        if (!state) return;
+                        setTimeout(() => (this.toast.show = false), 6000);
+                    });
+                },
+                async retrieveTests() {
+                    const params = new URLSearchParams({
+                        page: this.tests.currentPage,
+                    });
+                    const response = await fetch(
+                        "http://localhost:5000/tests?" + params,
+                    );
+                    const json = await response.json();
+                    this.tests.list = json.data.tests;
+                    this.tests.totalPages = json.data.totalPages;
+                },
+                async retrieveConfigVars() {
+                    const response = await fetch(
+                        "http://localhost:5000/configure/list",
+                    );
+                    const json = await response.json();
+                    const { actionsList, elementLookups, fieldTypes } =
+                        json.data;
+                    this.builder.actions = actionsList;
+                    this.builder.elementLookups = elementLookups;
+                    this.builder.fieldTypes = fieldTypes;
+                },
+                async onTestRunClicked() {
+                    this.builder.screenshots = [];
+                    const response = await fetch(
+                        "http://localhost:5000/configure/test",
+                        {
+                            method: "POST",
+                            body: JSON.stringify({ steps: this.builder.steps }),
+                            headers: {
+                                accept: "application/json",
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    );
+                    const json = await response.json();
+                    if (!response.ok) {
+                        const errors = json.errors;
+                        this.toast.title = "Test Run: Failed";
+                        this.toast.content = `Failed on step ${json.data.completedSteps + 1}`;
+                        this.toast.success = false;
+                        this.toast.show = true;
+                        return;
+                    }
+                    console.log(json);
+                    this.builder.screenshots = json.data.screenshots;
+                    this.toast.title = "Test Run: Success";
+                    this.toast.content = "Test completed successfully.";
+                    this.toast.success = true;
+                    this.toast.show = true;
+                },
+                handleDrop(e, stepIndex = -1) {
+                    if (e.type != "drop") return;
+                    let itemPosition = this.builder.steps.length;
+                    if (stepIndex == -1) {
+                        stepIndex = this.builder.steps.length;
+                    } else {
+                        itemPosition = stepIndex + 1;
+                    }
+                    const draggedEl = this.builder.draggingElem;
+                    const step = this.createNewStepObject(draggedEl);
+                    this.builder.steps.splice(stepIndex + 1, 0, step);
+                    this.resetStepNumbers();
+                    this.sliders.editItem.item =
+                        this.builder.steps[itemPosition];
+                    this.sliders.editItem.show = true;
+                    this.builder.draggingElem = null;
+                },
+                createNewStepObject(draggedEl) {
+                    const action = JSON.parse(
+                        draggedEl.getAttribute("data-action"),
+                    );
+                    const step = {
+                        stepNumber: null,
                         selector_type: null,
-                        displayTitle: 'https://www.example.com',
-                        value: 'https://www.example.com',
+                        displayTitle: null,
+                        value: null,
                         field_value: null,
                         field_type_id: null,
-                        type: 'visit',
-                        human_type: 'Visit URL in Address Bar',
-                        id: 0,
-                        screenshot_name: null
-                    }
-                ]
-            },
-            sliders: {
-                editItem: {
-                    show: false,
-                    item: null,
-                }
-            },
-            modals: {
-                store: {
-                    show: false,
-                    value: null
-                }
-            },
-            init() {
-                this.retrieveTests()
-                this.retrieveConfigVars()
-                this.$watch('toast.show', (state) => {
-                    if (!state) return
-                    setTimeout(() => this.toast.show = false, 6000)
-                })
-            },
-            async retrieveTests() {
-                const params = new URLSearchParams({
-                    page: this.tests.currentPage
-                })
-                const response = await fetch('http://localhost:5000/tests?' + params)
-                const json = await response.json()
-                this.tests.list = json.data.tests;
-                this.tests.totalPages = json.data.totalPages
-            },
-            async retrieveConfigVars() {
-                const response = await fetch('http://localhost:5000/configure/list')
-                const json = await response.json()
-                const {actionsList, elementLookups, fieldTypes} = json.data
-                this.builder.actions = actionsList;
-                this.builder.elementLookups = elementLookups
-                this.builder.fieldTypes = fieldTypes
-            },
-            async onTestRunClicked() {
-                this.builder.screenshots = []
-                const response = await fetch('http://localhost:5000/configure/test', {
-                    method: 'POST',
-                    body: JSON.stringify({steps: this.builder.steps}),
-                    headers: {
-                        'accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                const json = await response.json()
-                if (!response.ok) {
-                    const errors = json.errors;
-                    this.toast.title = 'Test Run: Failed'
-                    this.toast.content = `Failed on step ${json.data.completedSteps + 1}`
-                    this.toast.success = false;
-                    this.toast.show = true;
-                    return
-                }
-                console.log(json)
-                this.builder.screenshots = json.data.screenshots
-                this.toast.title = 'Test Run: Success'
-                this.toast.content = 'Test completed successfully.'
-                this.toast.success = true;
-                this.toast.show = true;
-            },
-            handleDrop(e, stepIndex = -1) {
-                if (e.type != "drop") return;
-                let itemPosition = this.builder.steps.length
-                if (stepIndex == -1) {
-                    stepIndex = this.builder.steps.length
-                } else {
-                    itemPosition = stepIndex + 1
-                }
-			    const draggedEl = this.builder.draggingElem;
-                const step = this.createNewStepObject(draggedEl)
-                this.builder.steps.splice(stepIndex + 1, 0, step)
-                this.resetStepNumbers()
-                this.sliders.editItem.item = this.builder.steps[itemPosition]
-                this.sliders.editItem.show = true
-                this.builder.draggingElem = null;
-            },
-            createNewStepObject(draggedEl) {
-                const action = JSON.parse(draggedEl.getAttribute('data-action'))
-                const step = {
-                    stepNumber: null,
-                    selector_type: null,
-                    displayTitle: null,
-                    value: null,
-                    field_value: null,
-                    field_type_id: null,
-                    screenshot_name: null,
-                    ...action,
-                }
+                        screenshot_name: null,
+                        ...action,
+                    };
 
-                switch(action.type) {
-                    case 'visit':
-                        step.displayTitle = 'https://www.example.com'
-                        step.value = 'https://www.example.com'
-                        break;
-                    case 'sleep':
-                        step.displayTitle = 'Sleep: 3s';
-                        step.value = 3;
-                        break;
-                    case 'screenshot':
-                        step.displayTitle = 'Screenshot: Unnamed'
-                        break;
-                    case 'click':
-                        step.displayTitle = 'Click Element';
-                        step.selector_type = 0
-                        break;
-                    case 'input':
-                        step.displayTitle = 'Field Input';
-                        step.field_type_id = 0
-                        step.selector_type = 0
-                }
-                return step;
-            },
-            resetStepNumbers() {
-                let i = 0;
-                do {
-                    this.builder.steps[i].stepNumber = i + 1;
-                    i += 1
-                } while(i < this.builder.steps.length)
-            },
-            styleDropBetween(e) {
-                console.log(e)
-            },
-            async onConfirmStoreTest() {
-                const response = await fetch('http://localhost:5000/tests/', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        name: this.modals.store.value,
-                        test: this.builder.steps
-                    }),
-                    headers: {
-                        'accept': 'application/json',
-                        'Content-Type': 'application/json'
+                    switch (action.type) {
+                        case "visit":
+                            step.displayTitle = "https://www.example.com";
+                            step.value = "https://www.example.com";
+                            break;
+                        case "sleep":
+                            step.displayTitle = "Sleep: 3s";
+                            step.value = 3;
+                            break;
+                        case "screenshot":
+                            step.displayTitle = "Screenshot: Unnamed";
+                            break;
+                        case "click":
+                            step.displayTitle = "Click Element";
+                            step.selector_type = 0;
+                            break;
+                        case "input":
+                            step.displayTitle = "Field Input";
+                            step.field_type_id = 0;
+                            step.selector_type = 0;
                     }
-                })
-                const json = await response.json()
-                if (!response.ok) {
-                    const errors = json.errors;
-                    this.toast.title = 'Sheet Stored: Failed'
-                    this.toast.content = json.errors[0].message || 'Please check any logs for more info'
-                    this.toast.success = false;
-                    this.toast.show = true;
-                    return
-                }
-                await this.retrieveTests()
-                this.modals.store.show = false;
-                this.builder.steps.length = 0;
-            },
-            ...e
-        })
-    </script>
-</body>
-
+                    return step;
+                },
+                resetStepNumbers() {
+                    let i = 0;
+                    do {
+                        this.builder.steps[i].stepNumber = i + 1;
+                        i += 1;
+                    } while (i < this.builder.steps.length);
+                },
+                styleDropBetween(e) {
+                    console.log(e);
+                },
+                async onConfirmStoreTest() {
+                    const response = await fetch(
+                        "http://localhost:5000/tests/",
+                        {
+                            method: "POST",
+                            body: JSON.stringify({
+                                name: this.modals.store.value,
+                                test: this.builder.steps,
+                            }),
+                            headers: {
+                                accept: "application/json",
+                                "Content-Type": "application/json",
+                            },
+                        },
+                    );
+                    const json = await response.json();
+                    if (!response.ok) {
+                        const errors = json.errors;
+                        this.toast.title = "Sheet Stored: Failed";
+                        this.toast.content =
+                            json.errors[0].message ||
+                            "Please check any logs for more info";
+                        this.toast.success = false;
+                        this.toast.show = true;
+                        return;
+                    }
+                    await this.retrieveTests();
+                    this.modals.store.show = false;
+                    this.builder.steps.length = 0;
+                },
+                ...e,
+            });
+        </script>
+    </body>
 </html>

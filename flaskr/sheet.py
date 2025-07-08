@@ -4,11 +4,12 @@ import openpyxl
 from datetime import datetime
 import os, time, pathlib
 from flaskr.db import get_db
+import string
 
 bp = Blueprint('sheet', __name__, url_prefix='/sheets')
 
 upload_sheets_dir = './uploads/sheets'
-head_rows = 6
+head_rows = 10
 
 
 #
@@ -79,6 +80,10 @@ def show(id):
     sheet = read_sheet(response['path'])
     head = read_sheet_head(sheet);
 
+    columns = []
+    for x in range(0, sheet.max_column):
+        columns.append(string.ascii_uppercase[x])
+
     data = {
         'sheet': {
             'meta': {
@@ -87,7 +92,8 @@ def show(id):
                 'rows': response['rows'],
                 'cols': response['cols'],
             },
-            'head': head
+            'head': head,
+            'columns': columns
         }
     }
     jsonData = { 'success': True, 'message': 'Sheets retrieved', 'data': data, 'errors': [] }

@@ -9,3 +9,32 @@ input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+    margin: 0;
+    background: #cad5e2;
+    border-radius: 5px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    cursor: pointer;
+    background: #314158;
+    border-radius: 5px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: #1d293d;
+}

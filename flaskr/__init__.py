@@ -33,6 +33,9 @@ def create_app(test_config=None):
     from . import sheet
     app.register_blueprint(sheet.bp)
 
+    from . import poll
+    app.register_blueprint(poll.bp)
+
     from . import db
     db.init_app(app)
 
