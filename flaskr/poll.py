@@ -4,6 +4,7 @@ from datetime import datetime
 import os, time, pathlib
 from flaskr.db import get_db
 import psutil
+import ast
 
 bp = Blueprint('poll', __name__, url_prefix='/poll')
 
@@ -16,7 +17,10 @@ def index():
         'cpu_prcnt': psutil.cpu_percent(interval=1)
     }
 
-    #Read db
+    db = get_db()
+    response = db.execute( 'SELECT * FROM run order by id desc LIMIT 1' ).fetchone()
+
+    data['results'] = ast.literal_eval(response['results'])
 
     jsonData = { 'success': True, 'message': 'Load retrieved', 'data': data, 'errors': [] }
     response = Response(jsonData, status = 200)

@@ -6,17 +6,18 @@ import threading
 import time
 from flaskr.db import get_db
 from flaskr.sheet import read_sheet
-from threading import Lock
 import math
-
-
-data_lock = Lock()
+from flask import current_app
 
 
 from flask import ( Blueprint, request )
 
 bp = Blueprint('configure', __name__, url_prefix='/configure')
 
+timeline = {
+    "failed": [],
+    "complete": []
+};
 
 #
 @bp.route('/list', methods=['GET'])
@@ -96,12 +97,30 @@ def run_load(id):
     chunking = math.floor(body['settings']['threads'] / body['settings']['chunks'])
     row = 0
 
+    global timeline
+    timeline = {
+        "failed": [],
+        "complete": []
+    }
+
+    cur = db.cursor()
+    run = cur.execute(
+        'INSERT INTO run (test_id, created, results, sheet_id) VALUES (?, ?, ?, ?) RETURNING id',
+        (id, int(time.time()), str([]), sheet['id'])
+    )
+    runRow = run.fetchone()
+    db.commit()
+
+
+
+    app = current_app._get_current_object();
+
+
     for x in range(0, body['settings']['chunks']):
         for i in range(row, row + chunking):
-            t = threading.Thread(name='Test {}'.format(i), target=temp, args=(i, computedSteps[i]))
+            t = threading.Thread(name='Test {}'.format(i), target=temp, args=(i, computedSteps[i], runRow, startRow, app))
             t.start()
             time.sleep(body['settings']['threadBreak'])
-            print('Test ' + str(i + 1) + ': started!')
             thread_list.append(t)
         row += chunking
         if body['settings']['waitForChunkToFinish'] == True:
@@ -113,13 +132,22 @@ def run_load(id):
         for thread in thread_list:
             thread.join()
 
+
     jsonData = { 'success': True, 'message': 'Test completed', 'data': [], 'errors': [] }
     status = 200
     response = Response(jsonData, status)
     return response.make_json_response()
 
-def temp(i, steps):
-    runner = BuildTest(steps)
+
+def temp(i, steps, runRow, startRow, app):
+    runner = BuildTest(steps, True, runRow, i)
     runner.setupDriver()
-    runner.run()
-    runner.closeDriver()
+    success = runner.run()
+    if success is True:
+        runner.closeDriver()
+    else:
+        timeline['failed'].append('Failed Row ' + str(i + startRow) + ' on step ' + str(runner.completedSteps + 1))
+        with app.app_context():
+            db = get_db()
+            db.execute('UPDATE run SET results = ? WHERE id = ?', (str(timeline), runRow['id']))
+            db.commit()

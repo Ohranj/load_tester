@@ -46,7 +46,7 @@
                                     <button class="bg-orange-500 flex items-center gap-x-2 text-white rounded-md text-sm font-semibold cursor-pointer py-0.5 min-w-[105px] px-2 hover:bg-orange-600 shadow shadow-black border" @click="show = !show" @click.away="show = false">
                                         <span>Action</span><img src="./images/icons/clipboard.svg" class="w-8 h-8" />
                                     </button>
-                                    <div x-cloak x-show="show" x-collapse class="absolute bg-white border shadow border-black rounded-md min-w-[200px]">
+                                    <div x-cloak x-show="show" x-collapse class="absolute bg-white border shadow border-black rounded-md min-w-[200px] z-1">
                                         <ul>
                                             <li class="p-2 cursor-pointer hover:bg-slate-200 rounded-t-md flex items-center gap-x-2" @click="retrieveSheet(x.id)">
                                                 <img src="./images/icons/clipboard.svg" class="w-5 h-5" />
@@ -211,6 +211,9 @@
                             <li>CPU: <span x-text="polling.data.cpu_prcnt + ' %'"></span></li>
                             <li>System Ram: <span x-text="polling.data.sys_ram + ' %'"></span></li>
                         </ul>
+                        <template x-for="x in polling.data.results?.failed">
+                            <small x-text="x"></small>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -250,7 +253,7 @@
                     }
                     this.polling.intval = setInterval(() => {
                         this.poll()
-                    }, 1000)
+                    }, 2000)
                 })
             },
             async retrieveTest() {
@@ -287,11 +290,10 @@
                 const formData = new FormData();
                 formData.append("sheet", files[0]);
                 const response = await fetch("http://localhost:5000/sheets/upload", {
-                        method: "POST",
-                        body: formData,
-                        headers: { accept: "application/json" },
-                    },
-                );
+                    method: "POST",
+                    body: formData,
+                    headers: { accept: "application/json" },
+                });
                 const json = await response.json();
                 if (!response.ok) {
                     alert("failed");
@@ -312,19 +314,18 @@
             async runLoad(id) {
                 this.polling.state = true
                 const response = await fetch("http://localhost:5000/configure/load/" + this.testId, {
-                        method: "POST",
-                        body: JSON.stringify({
-                            testId: this.testId,
-                            steps: this.test.steps,
-                            sheet: this.sheet.id,
-                            settings: this.runSettings,
-                        }),
-                        headers: {
-                            accept: "application/json",
-                            "Content-Type": "application/json",
-                        },
+                    method: "POST",
+                    body: JSON.stringify({
+                        testId: this.testId,
+                        steps: this.test.steps,
+                        sheet: this.sheet.id,
+                        settings: this.runSettings,
+                    }),
+                    headers: {
+                        "accept": "application/json",
+                        "Content-Type": "application/json",
                     },
-                );
+                });
                 const json = await response.json();
                 this.polling.state = false;
             },
@@ -332,6 +333,7 @@
                 const response = await fetch('http://localhost:5000/poll')
                 const json = await response.json()
                 this.polling.data = json.data
+                console.log(this.polling.data.results)
             }
         });
     </script>

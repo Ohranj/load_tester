@@ -9,10 +9,12 @@ class BuildTest:
     screenshotDir = './screenshots/temp'
     completedSteps = 0
     loadTest = False
-    def __init__(self, steps, loadTest = False):
+    def __init__(self, steps, loadTest = False, dbRunRow = None, runnerIdx = None):
         self.screenshotPaths = [];
         self.steps = steps;
         self.loadTest = loadTest;
+        self.dbRunRow = dbRunRow;
+        self.runnerIdx = runnerIdx;
     def setupDriver(self):
         driver = webdriver.Chrome()
         driver.set_window_size(1536, 864)
@@ -20,38 +22,43 @@ class BuildTest:
         self.driver = driver;
     def run(self):
         for idx, x in enumerate(self.steps):
-            match(x['type']):
-                case 'visit':
-                    self.driver.get(x['value'])
-                case 'sleep':
-                    time.sleep(x['value'])
-                case 'screenshot':
-                    if self.loadTest:
-                        return;
-                    path = int(time.time()) + idx
-                    dir_exists = os.path.isdir(self.screenshotDir)
-                    if dir_exists == False:
-                        pathlib.Path(self.screenshotDir).mkdir(parents=True)
-                    self.driver.save_screenshot(f"{self.screenshotDir}/{path}.png")
-                    self.screenshotPaths.append({'path': path, 'name': x['screenshot_name']})
-                case 'input':
-                    actions = Configs()
-                    find_by = actions.elementLookups[x['selector_type']]
-                    elem = self.get_elem_on_page(find_by, x['value']);
-                    match x['field_type_id']:
-                        case 0 | 1:
-                            elem.send_keys(x['field_value'])
-                        case 2:
-                            select_elem = Select(elem)
-                            select_elem.select_by_visible_text(x['field_value'])
-                        case 3:
-                            elem.click()
-                case 'click':
-                    actions = Configs()
-                    find_by = actions.elementLookups[x['selector_type']]
-                    elem = self.get_elem_on_page(find_by, x['value']);
-                    elem.click()
+            try:
+                match(x['type']):
+                    case 'visit':
+                        self.driver.get(x['value'])
+                    case 'sleep':
+                        time.sleep(x['value'])
+                    case 'screenshot':
+                        if self.loadTest:
+                            return;
+                        path = int(time.time()) + idx
+                        dir_exists = os.path.isdir(self.screenshotDir)
+                        if dir_exists == False:
+                            pathlib.Path(self.screenshotDir).mkdir(parents=True)
+                        self.driver.save_screenshot(f"{self.screenshotDir}/{path}.png")
+                        self.screenshotPaths.append({'path': path, 'name': x['screenshot_name']})
+                    case 'input':
+                        actions = Configs()
+                        find_by = actions.elementLookups[x['selector_type']]
+                        elem = self.get_elem_on_page(find_by, x['value']);
+                        match x['field_type_id']:
+                            case 0 | 1:
+                                elem.send_keys(x['field_value'])
+                            case 2:
+                                select_elem = Select(elem)
+                                select_elem.select_by_visible_text(x['field_value'])
+                            case 3:
+                                elem.click()
+                    case 'click':
+                        actions = Configs()
+                        find_by = actions.elementLookups[x['selector_type']]
+                        elem = self.get_elem_on_page(find_by, x['value']);
+                        elem.click()
+            except:
+                self.closeDriver()
+                return False
             self.completedSteps += 1;
+        return True;
     def get_elem_on_page(self, find_by, value):
         elem = None;
         match find_by['human_type']:
